@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm dlx shadcn@latest add:*)",
+      "Bash(git add:*)",
+      "Bash(pnpm build:*)",
+      "WebSearch",
+      "Bash(pnpm tsc:*)",
+      "Bash(find:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs"
+    ],
+    "deny": [
+      "Bash(pnpm dev)",
+      "Read(./.next/**)",
+      "Read(./.env)"
+    ],
+    "ask": []
+  }
+}
