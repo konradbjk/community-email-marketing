@@ -288,6 +288,20 @@ export async function GET(request: Request) {
 - Validation modes: `onChange` for immediate feedback, `onSubmit` for performance
 - CSV upload handling with drag & drop support
 
+### Styling Guidelines
+- Use **shadcn/ui** CLI to add components: `pnpm dlx shadcn@latest add [component]`
+- **ALWAYS use shadcn/ui color tokens** from `app/globals.css` instead of hardcoded colors:
+  - `bg-background`, `text-foreground` (main background/text)
+  - `bg-card`, `text-card-foreground` (card backgrounds)
+  - `bg-primary`, `text-primary-foreground` (primary actions)
+  - `bg-secondary`, `text-secondary-foreground` (secondary actions)
+  - `bg-muted`, `text-muted-foreground` (muted content)
+  - `border` (consistent borders)
+- **NEVER use hardcoded colors** like `bg-blue-600`, `text-gray-300` - always use semantic color tokens
+- Responsive design with Tailwind variants (`sm:`, `md:`, `lg:`)
+- Component extraction for repeated UI patterns
+- Skeleton components match actual content layout
+
 ### Email Marketing Specific Patterns
 
 Campaign Management Components:
