@@ -126,13 +126,13 @@ Your code must respect the client/server boundary.
 
 ## Project Overview
 
-GenAI Cracow Email Marketing Tool - A Next.js 15 application for community email marketing with subscriber management, campaign creation, automated sending, and analytics tracking.
+Internal chatbot application for Merck that enables multi-turn conversations with an agentic system. Features include chat interface with sidebar conversations, voice/image/file input composer, contextual conversation memory, project-based custom instructions, and a comprehensive prompt library system.
 
 ## Architecture & Tech Stack
 
 ### Frontend
 - Framework: **Next.js 15** with App Router and **Turbopack**
-- React: **19.1.0** with React DOM 19.1.0
+- React: **19**
 - Styling: **Tailwind CSS v4** with CSS variables
 - UI Components: **shadcn/ui** (New York style) with **Radix UI** primitives
 - Icons: **Lucide React**
@@ -142,7 +142,6 @@ GenAI Cracow Email Marketing Tool - A Next.js 15 application for community email
 ### Backend & Data
 - Database: **PostgreSQL** with **TypeORM**
 - Authentication: POC stage - no auth system yet
-- Email Service: **AWS SES** integration with **React Email** components
 - Environment: **Zod** validation in `lib/env-validation.ts`
 
 ### UI Component System
@@ -155,72 +154,81 @@ GenAI Cracow Email Marketing Tool - A Next.js 15 application for community email
 ## Key Features (Based on Specification)
 
 ### Core User Flows
-1. **Subscriber Management** (`/admin/subscribers`)
-   - Table view with search, bulk actions, CSV import/export
-   - Add single subscriber modal with duplicate detection
-   - Tag management and subscriber filtering
+1. **Chat Interface**
+   - Left sidebar with conversation list and actions (minimizable)
+   - Right side chat window: message list (top) + composer (bottom)
+   - Multi-modal input: voice transcription, image upload, file attachments
+   - Chronological message ordering with latest at bottom
 
-2. **Campaign Creation** (`/admin/campaigns`)
-   - Multi-step campaign builder: Details → Recipients → Content → Review
-   - WYSIWYG/Markdown editor with templates
-   - Test email sending and scheduling
+2. **Multi-turn Dialogue Support**
+   - Create, remove, or archive conversations
+   - Modifiable conversation titles
+   - Archived conversations searchable but not in default list
+   - Double opt-in deletion with confirmation modal
 
-3. **Sending & Queue Management**
-   - Batch processing with rate limiting
-   - Daily quota tracking
-   - SMTP integration with delivery logging
+3. **Contextual Conversation Memory**
+   - User profile-based question influence
+   - Project-based custom instructions and documents
+   - Response style selection (Normal, Concise, Learning, Formal)
+   - Custom instructions for Normal mode
 
-4. **Campaign Analytics** (`/admin/campaigns/[id]`)
-   - Open/click tracking with pixel and redirect URLs
-   - Engagement metrics and timeline charts
-   - Export capabilities for engagement data
+4. **Conversation Sharing** (Future)
+   - Share conversations with other users
+   - View tool results (URLs searched, Snowflake data)
+   - Three sharing modes: collaborative, fork-on-response, view-only
 
-5. **Dashboard Overview** (`/admin`)
-   - Quick stats, recent activity feed
-   - System status and quota monitoring
+5. **Feedback Tracking**
+   - Thumbs up/down on AI responses
+   - Category selection (UI Bug, Poor understanding, etc.)
+   - Optional detailed text feedback
+   - Integration with Langfuse annotation queue
 
-6. **Public Pages**
-   - Unsubscribe page (`/unsubscribe/[token]`)
-   - Email tracking endpoints (`/track/open/`, `/track/click/`)
+6. **Prompt Library System**
+   - Suggestion prompts (short templates for expansion)
+   - Final prompts (complete, curated prompts)
+   - Personal prompt creation and forking
+   - Company-wide prompt sharing with approval process
 
 ## Project Structure
 
 ```text
 app/                     # Next.js App Router pages & API routes
 ├── api/                 # API route handlers
-├── admin/               # Admin panel pages
-├── track/               # Email tracking endpoints
-├── unsubscribe/         # Public unsubscribe pages
+├── chat/                # Chat interface pages
+├── projects/            # Project management pages
+├── prompts/             # Prompt library pages
 components/              # React components
 ├── ui/                  # shadcn/ui components
-├── email/               # React Email template components
+├── chat/                # Chat interface components
+├── prompts/             # Prompt library components
 lib/                    # Utilities and configuration
 ├── env-validation.ts    # Environment validation
 ├── backend-config.ts    # Database configuration
-├── aws-ses.ts           # AWS SES client configuration
+├── ai-providers.ts      # AI provider configurations
 ├── utils.ts             # Utility functions
 providers/              # App providers (TanStack Query, etc.)
+hooks/                  # Custom React hooks
+types/                  # TypeScript type definitions
 ```
 
 ## URL Structure
 
-### Admin Routes (POC - No Auth)
-- `/admin` - Main dashboard
-- `/admin/subscribers` - Subscriber management
-- `/admin/campaigns` - Campaign list and creation
-- `/admin/campaigns/[id]` - Campaign analytics
-- `/admin/settings` - AWS SES and system configuration
-
-### Public Routes
-- `/` - Landing page
-- `/unsubscribe/[token]` - Unsubscribe page
+### Main Routes (POC - No Auth)
+- `/` - Chat interface (main application)
+- `/chat/[conversationId]` - Specific conversation view
+- `/projects` - Project management dashboard
+- `/projects/[projectId]` - Project detail and conversations
+- `/prompts` - Prompt library browser
+- `/prompts/[promptId]` - Prompt detail and usage
 
 ### API Routes
-- `/api/v1/subscribers` - Subscriber CRUD operations
-- `/api/v1/campaigns` - Campaign management
-- `/api/v1/email/send` - Email sending queue
-- `/track/open/[campaignId]/[subscriberId]` - Open tracking
-- `/track/click/[linkId]/[subscriberId]` - Click tracking
+- `/api/v1/conversations` - Conversation CRUD operations
+- `/api/v1/messages` - Message handling and AI responses
+- `/api/v1/projects` - Project management
+- `/api/v1/prompts` - Prompt library operations
+- `/api/v1/feedback` - User feedback collection
+- `/api/v1/upload` - File upload handling
+- `/api/v1/transcribe` - Voice transcription
 
 ## Environment Configuration
 
@@ -228,13 +236,13 @@ The application uses comprehensive environment validation via `lib/env-validatio
 
 Required Variables:
 - **PostgreSQL**: `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
-- **AWS SES**: `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
-- Admin: `ADMIN_EMAIL_1`, `ADMIN_EMAIL_2`
+- **Backend API**: `BACKEND_API_URL`, `BACKEND_API_KEY` (for custom AI backend integration)
+- **Transcription**: `UPTIMIZE_TRANSCRIBE_ENDPOINT`, `UPTIMIZE_API_KEY`
 
 Optional Variables:
-- `GOOGLE_GENERATIVE_AI_API_KEY`, `OPENAI_API_KEY` - For AI spam testing features
+- `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY` - For prompt library and feedback tracking
 - `POSTGRES_SSL` - SSL configuration
-- `AWS_SESSION_TOKEN` - For temporary AWS credentials
+- `SNOWFLAKE_*` - For Snowflake data integration (future)
 
 ## Development Rules & Conventions
 
@@ -251,17 +259,19 @@ Optional Variables:
 
 ### Component Organization
 - UI components follow **shadcn/ui** patterns
-- Email templates in `components/email/`
-- Admin components in `components/admin/`
+- Chat components in `components/chat/`
+- Prompt library components in `components/prompts/`
 - Shared utilities in `lib/`
 
 ### Database Schema Considerations
 Core Entities (Based on Specification):
-- `subscribers` - Email, name, status, tags, subscription date
-- `campaigns` - Name, subject, content, status, send date
-- `campaign_sends` - Individual send records with tracking
-- `email_events` - Opens, clicks, bounces, unsubscribes
-- `settings` - SMTP configuration, daily limits
+- `users` - User profile, preferences, response style settings
+- `conversations` - Title, status (active/archived), creation/modification dates
+- `messages` - Content, role (human/ai), attachments, feedback, conversation relation
+- `projects` - Name, custom instructions, documents, user relation
+- `project_conversations` - Many-to-many relation between projects and conversations
+- `prompts` - Personal and shared prompts, forked relationships
+- `feedback` - User feedback on AI responses with categories and details
 
 ### TypeScript Conventions
 - Prefer Types over Interfaces: Use types for data structures
@@ -286,7 +296,7 @@ export async function GET(request: Request) {
 - Use **React Hook Form** with **Zod** validation through **shadcn/ui** `<Form />` components
 - Schema-first design: Define **Zod** schemas before components
 - Validation modes: `onChange` for immediate feedback, `onSubmit` for performance
-- CSV upload handling with drag & drop support
+- File upload handling with drag & drop support for attachments
 
 ### Styling Guidelines
 - Use **shadcn/ui** CLI to add components: `pnpm dlx shadcn@latest add [component]`
@@ -302,40 +312,38 @@ export async function GET(request: Request) {
 - Component extraction for repeated UI patterns
 - Skeleton components match actual content layout
 
-### Email Marketing Specific Patterns
+### Chat Interface Specific Patterns
 
-Campaign Management Components:
-- Multi-step campaign creation
-- Template selection and editing
-- Recipient selection (tags, custom lists)
-- Preview generation (desktop/mobile)
-- Test email sending
+Message Components:
+- Human/AI message distinction with role-based styling
+- Multi-modal message rendering (text, images, files)
+- Timestamp and status indicators
+- Feedback buttons (thumbs up/down) on AI messages
 
-Subscriber Management Components:
-- Bulk operations (import, export, delete)
-- Tag management
-- Duplicate detection
-- Search and filtering
+Composer Components:
+- Auto-growing text input with rich formatting
+- File drag & drop attachment handling
+- Voice recording and transcription integration
+- Send button states and loading indicators
 
-Analytics & Tracking Implementation:
-- 1x1 pixel for opens `/track/open/[campaignId]/[subscriberId]`
-- Redirect URLs for clicks `/track/click/[linkId]/[subscriberId]`
-- Bounce handling via SMTP webhooks
-- Unsubscribe token validation
+Conversation Management:
+- Sidebar conversation list with search/filter
+- Archive/delete operations with confirmations
+- Title editing with inline input
+- Status indicators (active, archived)
 
-### AWS SES Integration Guidelines
-- Email Components: Use **React Email** (@react-email/components) for template creation
-- AWS SES Client: Use **@aws-sdk/client-ses** for email sending
-- Rate Limiting: Respect **AWS SES** sending quotas and rates
-- Template Management: **React Email** components in `components/email/`
-- Delivery Tracking: **AWS SES** bounce/complaint notifications
-- Future AI Integration: Spam testing using **OpenAI/Google AI** before sending
+### Backend Integration Guidelines
+- **Custom AI Backend**: HTTP client for backend API communication
+- **Request/Response**: Structured API calls with proper error handling
+- **Streaming**: Real-time message streaming for AI responses
+- **File Handling**: Upload management for attachments and project documents
+- **Feedback Integration**: Langfuse API integration for user feedback tracking
 
-### React Email Integration
-- Components: Create email templates using **React Email** components
-- Development: Use **React Email CLI** for template development and testing
-- Rendering: Convert React components to HTML for **AWS SES**
-- Styling: Inline CSS support for email clients
+### Multi-modal Input Integration
+- **Voice Transcription**: Uptimize endpoint integration for audio processing
+- **File Processing**: Support for images, documents, and other attachments
+- **Combined Inputs**: Single message composition with multiple input types
+- **Preview Generation**: Attachment previews before sending
 
 ## Final Reminder
 
