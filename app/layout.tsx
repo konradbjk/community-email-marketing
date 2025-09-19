@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { TanstackQueryProvider } from "@/providers/tanstackQueryProvider";
+import { AppLayout } from "@/components/app-layout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,8 +15,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GenAI Cracow Email Marketing",
-  description: "Email marketing platform for the GenAI Cracow community",
+  title: "Merck OmniA Chat",
+  description: "Merck Internal Chatbot for OmniA data",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
 };
 
 export default function RootLayout({
@@ -29,7 +38,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <TanstackQueryProvider>
-          {children}
+          <AppLayout>{children}</AppLayout>
         </TanstackQueryProvider>
       </body>
     </html>
