@@ -2,8 +2,9 @@
 
 import { createContext, PropsWithChildren, useState } from 'react';
 import { StoreApi } from 'zustand';
-import { ChatStore, createChatStore } from '@/stores/chat-store';
-import { MockConversation } from '@/lib/mock-data';
+import { createChatStore } from '@/stores/chat-store';
+import type { ChatStore } from '@/types/chat';
+import type { MockConversation } from '@/lib/mock-data';
 
 // Context to hold the store
 export const ChatStoreContext = createContext<StoreApi<ChatStore> | undefined>(undefined);
