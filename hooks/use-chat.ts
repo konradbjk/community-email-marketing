@@ -64,7 +64,15 @@ export const useAddMessage = () =>
 export const useClearMessages = () =>
   useChat((state) => state.clearMessages);
 
-// Input hooks removed - input should be local component state, not global
+// Input hooks
+export const useInput = () =>
+  useChat((state) => state.input);
+
+export const useSetInput = () =>
+  useChat((state) => state.setInput);
+
+export const useClearInput = () =>
+  useChat((state) => state.clearInput);
 
 // Loading state hooks
 export const useIsGenerating = () =>
