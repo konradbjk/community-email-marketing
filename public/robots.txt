@@ -1,0 +1,3 @@
+# Disallow all indexing - Demo Mode
+User-agent: *
+Disallow: /
