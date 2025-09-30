@@ -194,41 +194,74 @@ export function Chat({
   return (
     <ChatContainer className={className}>
       {isEmpty && append && suggestions ? (
-        <PromptSuggestions
-          label="Try these prompts ✨"
-          append={append}
-          suggestions={suggestions}
-        />
-      ) : null}
+        <>
+          <ChatForm
+            className="mb-6"
+            isPending={isGenerating || isTyping}
+            handleSubmit={handleSubmit}
+          >
+            {({ files, setFiles }) => (
+              <MessageInput
+                value={input}
+                onChange={handleInputChange}
+                allowAttachments
+                files={files}
+                setFiles={setFiles}
+                stop={handleStop}
+                isGenerating={isGenerating}
+                transcribeAudio={transcribeAudio}
+              />
+            )}
+          </ChatForm>
+          <div className="flex-1 flex items-center justify-center px-6">
+            <div className="max-w-6xl w-full space-y-6">
+              <h2 className="text-center text-2xl font-bold">Try these prompts ✨</h2>
+              <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 text-sm">
+                {suggestions.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    onClick={() => append({ role: "user", content: suggestion })}
+                    className="text-left rounded-xl border bg-background p-6 hover:bg-muted transition-colors h-auto min-h-[120px] flex items-center"
+                  >
+                    <p className="leading-relaxed">{suggestion}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          {messages.length > 0 ? (
+            <ChatMessages messages={messages}>
+              <MessageList
+                messages={messages}
+                isTyping={isTyping}
+                messageOptions={messageOptions}
+              />
+            </ChatMessages>
+          ) : null}
 
-      {messages.length > 0 ? (
-        <ChatMessages messages={messages}>
-          <MessageList
-            messages={messages}
-            isTyping={isTyping}
-            messageOptions={messageOptions}
-          />
-        </ChatMessages>
-      ) : null}
-
-      <ChatForm
-        className="mt-auto"
-        isPending={isGenerating || isTyping}
-        handleSubmit={handleSubmit}
-      >
-        {({ files, setFiles }) => (
-          <MessageInput
-            value={input}
-            onChange={handleInputChange}
-            allowAttachments
-            files={files}
-            setFiles={setFiles}
-            stop={handleStop}
-            isGenerating={isGenerating}
-            transcribeAudio={transcribeAudio}
-          />
-        )}
-      </ChatForm>
+          <ChatForm
+            className="mt-auto"
+            isPending={isGenerating || isTyping}
+            handleSubmit={handleSubmit}
+          >
+            {({ files, setFiles }) => (
+              <MessageInput
+                value={input}
+                onChange={handleInputChange}
+                allowAttachments
+                files={files}
+                setFiles={setFiles}
+                stop={handleStop}
+                isGenerating={isGenerating}
+                transcribeAudio={transcribeAudio}
+              />
+            )}
+          </ChatForm>
+        </>
+      )}
     </ChatContainer>
   )
 }
