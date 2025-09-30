@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { useStore } from 'zustand';
 import { ChatStoreContext } from '@/providers/chat-provider';
-import { ChatStore } from '@/stores/chat-store';
+import type { ChatStore } from '@/types/chat';
 
 // Base hook with scope validation
 export const useChat = <T>(
@@ -50,9 +50,13 @@ export const useToggleStarredConversation = () =>
 export const useUpdateConversationTitle = () =>
   useChat((state) => state.updateConversationTitle);
 
-// Message hooks
+// Message hooks - currentMessages is derived from active conversation
 export const useCurrentMessages = () =>
-  useChat((state) => state.currentMessages);
+  useChat((state) => {
+    if (!state.activeConversationId) return [];
+    const activeConv = state.conversations.find(c => c.id === state.activeConversationId);
+    return activeConv?.messages || [];
+  });
 
 export const useAddMessage = () =>
   useChat((state) => state.addMessage);
@@ -60,15 +64,7 @@ export const useAddMessage = () =>
 export const useClearMessages = () =>
   useChat((state) => state.clearMessages);
 
-// Input hooks
-export const useInput = () =>
-  useChat((state) => state.input);
-
-export const useSetInput = () =>
-  useChat((state) => state.setInput);
-
-export const useClearInput = () =>
-  useChat((state) => state.clearInput);
+// Input hooks removed - input should be local component state, not global
 
 // Loading state hooks
 export const useIsGenerating = () =>
@@ -105,8 +101,6 @@ export const useMessageActions = () =>
   useChat((state) => ({
     addMessage: state.addMessage,
     clearMessages: state.clearMessages,
-    setInput: state.setInput,
-    clearInput: state.clearInput,
   }));
 
 export const useLoadingStates = () =>
