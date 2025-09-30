@@ -3,7 +3,7 @@
 import { useChat as useAIChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import { useCallback, useEffect } from 'react'
-import { useChat, useAddMessage, useSetIsGenerating, useActiveConversation, useSetInput, useInput } from './use-chat'
+import { useCurrentMessages, useAddMessage, useSetIsGenerating, useActiveConversation, useSetInput, useInput } from './use-chat'
 
 /**
  * Enhanced chat hook that integrates AI SDK v5 with Zustand store
@@ -16,8 +16,8 @@ export function useAIChatIntegration() {
   const setInput = useSetInput()
   const input = useInput()
 
-  // Get current messages from store
-  const currentMessages = useChat((state) => state.currentMessages)
+  // Get current messages from active conversation
+  const currentMessages = useCurrentMessages()
 
   // Convert our message format to AI SDK format
   const convertToAIMessages = useCallback(() => {

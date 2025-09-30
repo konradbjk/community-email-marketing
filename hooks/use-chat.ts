@@ -124,7 +124,7 @@ export const useChatState = () =>
   useChat((state) => ({
     activeConversationId: state.activeConversationId,
     conversations: state.conversations,
-    currentMessages: state.currentMessages,
+    
     isGenerating: state.isGenerating,
     isLoading: state.isLoading,
     input: state.input,
