@@ -214,12 +214,13 @@ types/                  # TypeScript type definitions
 ## URL Structure
 
 ### Main Routes (POC - No Auth)
-- `/` - Chat interface (main application)
-- `/chat/[conversationId]` - Specific conversation view
+- `/` - Landing page
+- `/chat` - Main chat interface with sidebar
+- `/chat/[id]` - Specific conversation view with chat ID
 - `/projects` - Project management dashboard
 - `/projects/[projectId]` - Project detail and conversations
 - `/prompts` - Prompt library browser
-- `/prompts/[promptId]` - Prompt detail and usage
+- `/prompts/[id]` - Prompt detail and usage
 
 ### API Routes
 - `/api/v1/conversations` - Conversation CRUD operations
