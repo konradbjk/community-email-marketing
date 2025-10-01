@@ -177,8 +177,8 @@ export default function ChatIdPage() {
         </div>
       </header>
 
-      {/* Chat area */}
-      <div className='flex-1 flex flex-col px-8'>
+      {/* Chat area - proper layout with fixed input at bottom */}
+      <div className='flex-1 flex flex-col overflow-hidden px-8 py-4'>
         {suggestions ? (
           <Chat
             messages={messages.map((msg: any) => ({
