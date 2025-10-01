@@ -19,7 +19,7 @@
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "prettier.configPath": "apps/web/.prettierrc.json",
+  "prettier.configPath": ".prettierrc.json",
   "material-icon-theme.activeIconPack": "nest",
   "material-icon-theme.files.associations": {
     "*.controller.ts": "controller"
