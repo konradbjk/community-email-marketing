@@ -92,15 +92,17 @@ export function ChatItem({
         </SidebarMenuButton>
 
         {/* Dropdown menu - only visible on hover with high z-index */}
-        {(isHovered || isActive) && (
-          <div className='absolute right-2 top-2 z-50'>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuAction className='opacity-100'>
-                  <MoreHorizontal className='h-4 w-4' />
-                </SidebarMenuAction>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent side='right' align='start' className='z-50'>
+        <div className='absolute right-2 top-2 z-50'>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuAction className={cn(
+                'transition-opacity',
+                (isHovered || isActive) ? 'opacity-100' : 'opacity-0'
+              )}>
+                <MoreHorizontal className='h-4 w-4' />
+              </SidebarMenuAction>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side='right' align='start' className='z-50'>
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
@@ -147,7 +149,6 @@ export function ChatItem({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        )}
       </div>
 
       {/* Rename Dialog */}

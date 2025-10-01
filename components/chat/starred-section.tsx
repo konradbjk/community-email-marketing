@@ -76,32 +76,33 @@ export function StarredSection({
                   </h3>
                 </div>
 
-                {isHovered && (
-                  <div className="absolute right-2 top-2 z-50">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 hover:bg-sidebar-accent opacity-100"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent side="right" align="start" className="z-50">
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            onToggleConversationStar(conversation.id)
-                          }}
-                        >
-                          <Star className="h-4 w-4 mr-2 fill-yellow-400 text-yellow-400" />
-                          Remove from favourites
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                )}
+                <div className="absolute right-2 top-2 z-50">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                          "h-6 w-6 hover:bg-sidebar-accent transition-opacity",
+                          isHovered ? "opacity-100" : "opacity-0"
+                        )}
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent side="right" align="start" className="z-50">
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onToggleConversationStar(conversation.id)
+                        }}
+                      >
+                        <Star className="h-4 w-4 mr-2 fill-yellow-400 text-yellow-400" />
+                        Remove from favourites
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             )
           } else {
@@ -126,32 +127,33 @@ export function StarredSection({
                   </h3>
                 </div>
 
-                {isProjectHovered && (
-                  <div className="absolute right-2 top-2 z-50">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 hover:bg-sidebar-accent opacity-100"
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent side="right" align="start" className="z-50">
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            onToggleProjectStar(project.id)
-                          }}
-                        >
-                          <Star className="h-4 w-4 mr-2 fill-yellow-400 text-yellow-400" />
-                          Remove from favourites
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                )}
+                <div className="absolute right-2 top-2 z-50">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                          "h-6 w-6 hover:bg-sidebar-accent transition-opacity",
+                          isProjectHovered ? "opacity-100" : "opacity-0"
+                        )}
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent side="right" align="start" className="z-50">
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onToggleProjectStar(project.id)
+                        }}
+                      >
+                        <Star className="h-4 w-4 mr-2 fill-yellow-400 text-yellow-400" />
+                        Remove from favourites
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             )
           }
