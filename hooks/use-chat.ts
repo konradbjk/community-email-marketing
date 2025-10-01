@@ -26,11 +26,13 @@ export const useActiveConversationId = () =>
 export const useConversations = () =>
   useChat((state) => state.conversations);
 
-export const useActiveConversation = () =>
-  useChat((state) => {
-    if (!state.activeConversationId) return null;
-    return state.conversations.find(c => c.id === state.activeConversationId) || null;
-  });
+export const useActiveConversation = () => {
+  const activeConversationId = useChat((state) => state.activeConversationId);
+  const conversations = useChat((state) => state.conversations);
+
+  if (!activeConversationId) return null;
+  return conversations.find(c => c.id === activeConversationId) || null;
+};
 
 export const useSetActiveConversation = () =>
   useChat((state) => state.setActiveConversation);
@@ -51,12 +53,14 @@ export const useUpdateConversationTitle = () =>
   useChat((state) => state.updateConversationTitle);
 
 // Message hooks - currentMessages is derived from active conversation
-export const useCurrentMessages = () =>
-  useChat((state) => {
-    if (!state.activeConversationId) return [];
-    const activeConv = state.conversations.find(c => c.id === state.activeConversationId);
-    return activeConv?.messages || [];
-  });
+export const useCurrentMessages = () => {
+  const activeConversationId = useChat((state) => state.activeConversationId);
+  const conversations = useChat((state) => state.conversations);
+
+  if (!activeConversationId) return [];
+  const activeConv = conversations.find(c => c.id === activeConversationId);
+  return activeConv?.messages || [];
+};
 
 export const useAddMessage = () =>
   useChat((state) => state.addMessage);
