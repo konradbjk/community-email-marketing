@@ -3,6 +3,7 @@ import type { UserProfile, UpdateProfileData } from "@/types/profile"
 import { getDataSource } from "@/database/data-source"
 import { User } from "@/database/entities/user.entity"
 import { UserProfile as UserProfileEntity } from "@/database/entities/user-profile.entity"
+import { ResponseStyle as ResponseStyleEntity } from "@/database/entities/response-style.entity"
 
 // GET /api/profile - Fetch user profile
 export async function GET(request: Request) {
@@ -94,74 +95,110 @@ export async function PATCH(request: Request) {
       "customInstructions",
     ]
 
-    const updates: UpdateProfileData = {}
-    for (const field of editableFields) {
-      if (field in body) {
-        updates[field as keyof UpdateProfileData] = body[field]
-      }
+  const updates: UpdateProfileData = {}
+  for (const field of editableFields) {
+    if (field in body) {
+      updates[field as keyof UpdateProfileData] = body[field]
     }
+  }
 
-    const dataSource = await getDataSource()
-    const userRepository = dataSource.getRepository(User)
-    const profileRepository = dataSource.getRepository(UserProfileEntity)
+  const normalizeOptional = (value: string | null | undefined) => {
+    if (value === undefined) return undefined
+    if (value === null) return null
+    return value.trim().length > 0 ? value : null
+  }
 
-    // Find user with profile relation
-    const user = await userRepository.findOne({
-      where: { merck_id: merckId },
-      relations: ['profile'],
+  const normalizeOptionalId = (value: string | null | undefined) => {
+    if (value === undefined) return undefined
+    if (value === null) return null
+    const trimmed = value.trim()
+    if (trimmed === 'advanced') return null
+    return trimmed.length > 0 ? trimmed : null
+  }
+
+  updates.role = normalizeOptional(updates.role)
+  updates.department = normalizeOptional(updates.department)
+  updates.region = normalizeOptional(updates.region)
+  updates.roleDescription = normalizeOptional(updates.roleDescription)
+  updates.aiResponseStyleId = normalizeOptionalId(updates.aiResponseStyleId)
+  updates.customResponseStyle = normalizeOptional(updates.customResponseStyle)
+  updates.customInstructions = normalizeOptional(updates.customInstructions)
+
+  const dataSource = await getDataSource()
+  const userRepository = dataSource.getRepository(User)
+  const profileRepository = dataSource.getRepository(UserProfileEntity)
+  const responseStyleRepository = dataSource.getRepository(ResponseStyleEntity)
+
+  if (updates.aiResponseStyleId !== undefined && updates.aiResponseStyleId !== null) {
+    const responseStyle = await responseStyleRepository.findOne({
+      where: { id: updates.aiResponseStyleId },
     })
 
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
+    if (!responseStyle) {
+      return NextResponse.json(
+        { error: "Selected response style does not exist" },
+        { status: 400 }
+      )
     }
+  }
 
-    // Update or create profile
-    if (user.profile) {
-      // Update existing profile
-      if (updates.role !== undefined) user.profile.role = updates.role
-      if (updates.department !== undefined) user.profile.department = updates.department
-      if (updates.region !== undefined) user.profile.region = updates.region
-      if (updates.roleDescription !== undefined) user.profile.role_description = updates.roleDescription
-      if (updates.aiResponseStyleId !== undefined) user.profile.ai_response_style_id = updates.aiResponseStyleId
-      if (updates.customResponseStyle !== undefined) user.profile.custom_response_style = updates.customResponseStyle
-      if (updates.customInstructions !== undefined) user.profile.custom_instructions = updates.customInstructions
+  // Find user with profile relation
+  const user = await userRepository.findOne({
+    where: { merck_id: merckId },
+    relations: ['profile'],
+  })
 
-      await profileRepository.save(user.profile)
-    } else {
-      // Create new profile
-      const newProfile = profileRepository.create({
-        user_id: user.id,
-        role: updates.role,
-        department: updates.department,
-        region: updates.region,
-        role_description: updates.roleDescription,
-        ai_response_style_id: updates.aiResponseStyleId,
-        custom_response_style: updates.customResponseStyle,
-        custom_instructions: updates.customInstructions,
-      })
-      await profileRepository.save(newProfile)
-      user.profile = newProfile
-    }
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 })
+  }
 
-    // Return updated profile
-    const updatedProfile: UserProfile = {
-      // Immutable (from session)
-      merck_id: user.merck_id,
-      name: user.name,
-      surname: user.surname,
-      email: user.email,
-      image: user.image,
-      // Editable (from database)
-      role: user.profile.role,
-      department: user.profile.department,
-      region: user.profile.region,
-      roleDescription: user.profile.role_description,
-      aiResponseStyleId: user.profile.ai_response_style_id,
-      customResponseStyle: user.profile.custom_response_style,
-      customInstructions: user.profile.custom_instructions,
-    }
+  // Update or create profile
+  if (user.profile) {
+    // Update existing profile
+    if (updates.role !== undefined) user.profile.role = updates.role
+    if (updates.department !== undefined) user.profile.department = updates.department
+    if (updates.region !== undefined) user.profile.region = updates.region
+    if (updates.roleDescription !== undefined) user.profile.role_description = updates.roleDescription
+    if (updates.aiResponseStyleId !== undefined) user.profile.ai_response_style_id = updates.aiResponseStyleId
+    if (updates.customResponseStyle !== undefined) user.profile.custom_response_style = updates.customResponseStyle
+    if (updates.customInstructions !== undefined) user.profile.custom_instructions = updates.customInstructions
 
-    return NextResponse.json(updatedProfile)
+    await profileRepository.save(user.profile)
+  } else {
+    // Create new profile
+    const newProfile = profileRepository.create({
+      user_id: user.id,
+      role: updates.role ?? null,
+      department: updates.department ?? null,
+      region: updates.region ?? null,
+      role_description: updates.roleDescription ?? null,
+      ai_response_style_id: updates.aiResponseStyleId ?? null,
+      custom_response_style: updates.customResponseStyle ?? null,
+      custom_instructions: updates.customInstructions ?? null,
+    })
+    await profileRepository.save(newProfile)
+    user.profile = newProfile
+  }
+
+  // Return updated profile
+  const updatedProfile: UserProfile = {
+    // Immutable (from session)
+    merck_id: user.merck_id,
+    name: user.name,
+    surname: user.surname,
+    email: user.email,
+    image: user.image,
+    // Editable (from database)
+    role: user.profile.role,
+    department: user.profile.department,
+    region: user.profile.region,
+    roleDescription: user.profile.role_description,
+    aiResponseStyleId: user.profile.ai_response_style_id,
+    customResponseStyle: user.profile.custom_response_style,
+    customInstructions: user.profile.custom_instructions,
+  }
+
+  return NextResponse.json(updatedProfile)
   } catch (error) {
     console.error('Error updating user profile:', error)
     return NextResponse.json(
