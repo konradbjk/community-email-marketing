@@ -22,10 +22,6 @@ const envSchema = z.object({
   AWS_SECRET_ACCESS_KEY: z.string().min(1, 'AWS_SECRET_ACCESS_KEY is required'),
   AWS_SESSION_TOKEN: z.string().optional(), // For temporary credentials
 
-  // Admin Configuration (Required for POC)
-  ADMIN_EMAIL_1: z.string().email('ADMIN_EMAIL_1 must be a valid email'),
-  ADMIN_EMAIL_2: z.string().email('ADMIN_EMAIL_2 must be a valid email'),
-
   // Application Configuration
   NEXT_PUBLIC_BASE_URL: z.string().url().optional(),
 
@@ -42,6 +38,15 @@ const envSchema = z.object({
   // AI Integration (Optional - for future spam testing)
   GOOGLE_GENERATIVE_AI_API_KEY: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
+
+  // Backend AI Integration
+  BACKEND_API_URL: z.url().optional().default('http://localhost:8000'),
+  BACKEND_API_TIMEOUT: z.coerce
+    .number()
+    .min(0, 'BACKEND_API_TIMEOUT must be zero or a positive integer')
+    .optional()
+    .default(60000),
+  BACKEND_API_MODEL: z.string().optional().default('gpt-4'),
 
   // Node Environment
   NODE_ENV: z.enum(['development', 'production', 'test']).optional(),
@@ -134,11 +139,6 @@ export function validateCriticalEnv(): void {
     'POSTGRES_USER',
     'POSTGRES_PASSWORD',
     'POSTGRES_DB',
-    'AWS_REGION',
-    'AWS_ACCESS_KEY_ID',
-    'AWS_SECRET_ACCESS_KEY',
-    'ADMIN_EMAIL_1',
-    'ADMIN_EMAIL_2',
   ];
 
   const missing = criticalVars.filter((varName) => !process.env[varName]);
