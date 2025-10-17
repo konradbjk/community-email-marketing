@@ -1,33 +1,93 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { useRouter } from "next/navigation"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Chat } from "@/components/ui/chat"
 import { MessageInput } from "@/components/ui/message-input"
 import { PromptSuggestions } from "@/components/ui/prompt-suggestions"
 import {
-  useActiveConversation,
-  useCreateNewConversation,
   useInput,
   useIsGenerating,
-  useAddMessage,
   useSetInput,
-  useSetIsGenerating
+  useSetIsGenerating,
+  useSetActiveConversation
 } from "@/hooks/use-chat"
-import { Button } from "@/components/ui/button"
-import { MessageSquare, Plus } from "lucide-react"
+import { useCreateConversation } from "@/hooks/use-conversations"
+import { MessageSquare } from "lucide-react"
+import { toast } from "sonner"
 
 export default function ChatPage() {
   const router = useRouter()
-  const activeConversation = useActiveConversation()
-  const createNewConversation = useCreateNewConversation()
   const input = useInput()
   const isGenerating = useIsGenerating()
-  const addMessage = useAddMessage()
   const setInput = useSetInput()
   const setIsGenerating = useSetIsGenerating()
+  const setActiveConversation = useSetActiveConversation()
+  const createConversationMutation = useCreateConversation()
   const [files, setFiles] = useState<File[] | null>(null)
+
+  const sendMessageToConversation = useCallback(
+    async (conversationId: string, message: string) => {
+      const response = await fetch(`/api/conversations/${conversationId}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}))
+        throw new Error(error.error || "Failed to send message")
+      }
+    },
+    []
+  )
+
+  const startConversation = useCallback(
+    async (messageContent: string) => {
+      if (!messageContent.trim()) return
+      if (createConversationMutation.isPending || isGenerating) return
+
+      setIsGenerating(true)
+      setInput("")
+      setFiles(null)
+
+      let conversationId: string | null = null
+
+      try {
+        const conversation = await createConversationMutation.mutateAsync({ title: "New Chat" })
+        conversationId = conversation.id
+
+        await sendMessageToConversation(conversation.id, messageContent)
+
+        setActiveConversation(conversation.id)
+        router.push(`/chat/${conversation.id}`)
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to start conversation"
+        toast.error(errorMessage)
+        setInput(messageContent)
+
+        if (conversationId) {
+          setActiveConversation(conversationId)
+          router.push(`/chat/${conversationId}`)
+        }
+      } finally {
+        setIsGenerating(false)
+      }
+    },
+    [
+      createConversationMutation,
+      isGenerating,
+      router,
+      sendMessageToConversation,
+      setActiveConversation,
+      setInput,
+      setFiles,
+      setIsGenerating,
+    ]
+  )
 
   const handleSubmit = async (
     event?: { preventDefault?: () => void },
@@ -36,62 +96,20 @@ export default function ChatPage() {
     event?.preventDefault?.()
     if (!input.trim()) return
 
-    // Create a new conversation if none exists
-    let conversationId = activeConversation?.id
-    if (!conversationId) {
-      conversationId = createNewConversation()
-    }
-
-    const userMessageData = {
-      role: "user" as const,
-      content: input.trim()
-    }
-
-    // Handle attachments if present
     if (options?.experimental_attachments && options.experimental_attachments.length > 0) {
-      console.log("Attachments:", options.experimental_attachments)
+      toast.error("File attachments are not supported in new conversations yet.")
+      return
     }
 
-    addMessage(conversationId, userMessageData)
-    setInput("")
-    setIsGenerating(true)
-
-    // Navigate to the conversation
-    router.push(`/chat/${conversationId}`)
-
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessageData = {
-        role: "assistant" as const,
-        content: `I understand you said: "${userMessageData.content}". This is a mock response for demonstration purposes.`
-      }
-      addMessage(conversationId!, aiMessageData)
-      setIsGenerating(false)
-    }, 1000)
+    await startConversation(input.trim())
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value)
   }
 
-  const handleAppend = (message: { role: "user"; content: string }) => {
-    // Create a new conversation
-    const conversationId = createNewConversation()
-    addMessage(conversationId, message)
-    setIsGenerating(true)
-
-    // Navigate to the conversation
-    router.push(`/chat/${conversationId}`)
-
-    // Simulate AI response
-    setTimeout(() => {
-      const aiMessageData = {
-        role: "assistant" as const,
-        content: `I understand you said: "${message.content}". This is a mock response for demonstration purposes.`
-      }
-      addMessage(conversationId, aiMessageData)
-      setIsGenerating(false)
-    }, 1000)
+  const handleAppend = async (message: { role: "user"; content: string }) => {
+    await startConversation(message.content)
   }
 
   const handleStop = () => {
