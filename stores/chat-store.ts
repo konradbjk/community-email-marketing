@@ -1,145 +1,51 @@
 import { createStore } from 'zustand/vanilla';
-import { CHAT_DEFAULTS, CONVERSATION_DEFAULTS } from '@/consts/defaults';
-import type {
-  ChatStore,
-  Message,
-  ConversationWithMessages,
-} from '@/types/chat';
-import type { MockConversation } from '@/lib/mock-data';
+import { CHAT_DEFAULTS } from '@/consts/defaults';
 
-// Store factory function
-export const createChatStore = (
-  initialConversations: MockConversation[] = [],
-) => {
-  return createStore<ChatStore>()((set, get) => ({
-    // Initial state
+// UI-only state for chat interface
+export type ChatUiState = {
+  // Active conversation selection (UI state)
+  activeConversationId: string | null;
+
+  // Composer input state
+  input: string;
+
+  // Loading states
+  isGenerating: boolean;
+  isLoading: boolean;
+};
+
+// UI-only actions
+export type ChatUiActions = {
+  // Conversation selection
+  setActiveConversation: (conversationId: string | null) => void;
+
+  // Input management
+  setInput: (input: string) => void;
+  clearInput: () => void;
+
+  // Loading states
+  setIsGenerating: (isGenerating: boolean) => void;
+  setIsLoading: (isLoading: boolean) => void;
+
+  // Reset
+  resetChatUi: () => void;
+};
+
+// Combined type for the complete store
+export type ChatStore = ChatUiState & ChatUiActions;
+
+// Store factory function - now only manages UI state
+export const createChatStore = () => {
+  return createStore<ChatStore>()((set) => ({
+    // Initial state - UI only
     activeConversationId: null,
-    conversations: initialConversations.map((conv) => ({
-      ...conv,
-      messages: [],
-    })),
     input: '',
     isGenerating: CHAT_DEFAULTS.isGenerating,
     isLoading: CHAT_DEFAULTS.isLoading,
 
-    // Conversation management actions
+    // UI Actions
     setActiveConversation: (conversationId) => {
       set({ activeConversationId: conversationId });
-    },
-
-    createNewConversation: (initialMessage) => {
-      const newId = `conv-${Date.now()}`;
-      const newConversation: ConversationWithMessages = {
-        id: newId,
-        title: CONVERSATION_DEFAULTS.title,
-        lastMessage: initialMessage || '',
-        timestamp: new Date(),
-        isStarred: CONVERSATION_DEFAULTS.isStarred,
-        isArchived: false,
-        messageCount: initialMessage ? 1 : 0,
-        messages: initialMessage
-          ? [
-              {
-                id: `msg-${Date.now()}`,
-                role: 'user',
-                content: initialMessage,
-                timestamp: new Date(),
-              },
-            ]
-          : [],
-      };
-
-      set((state) => ({
-        conversations: [newConversation, ...state.conversations],
-        activeConversationId: newId,
-      }));
-
-      return newId;
-    },
-
-    deleteConversation: (conversationId) => {
-      set((state) => {
-        const filteredConversations = state.conversations.filter(
-          (c) => c.id !== conversationId,
-        );
-        const newActiveId =
-          state.activeConversationId === conversationId
-            ? null
-            : state.activeConversationId;
-
-        return {
-          conversations: filteredConversations,
-          activeConversationId: newActiveId,
-        };
-      });
-    },
-
-    archiveConversation: (conversationId) => {
-      set((state) => ({
-        conversations: state.conversations.map((conv) =>
-          conv.id === conversationId
-            ? { ...conv, isArchived: !conv.isArchived }
-            : conv,
-        ),
-      }));
-    },
-
-    toggleStarredConversation: (conversationId) => {
-      set((state) => ({
-        conversations: state.conversations.map((conv) =>
-          conv.id === conversationId
-            ? { ...conv, isStarred: !conv.isStarred }
-            : conv,
-        ),
-      }));
-    },
-
-    updateConversationTitle: (conversationId, title) => {
-      set((state) => ({
-        conversations: state.conversations.map((conv) =>
-          conv.id === conversationId ? { ...conv, title } : conv,
-        ),
-      }));
-    },
-
-    // Message management actions
-    addMessage: (conversationId, messageData) => {
-      const newMessage: Message = {
-        id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        timestamp: new Date(),
-        ...messageData,
-      };
-
-      set((state) => ({
-        conversations: state.conversations.map((conv) => {
-          if (conv.id === conversationId) {
-            const updatedMessages = [...conv.messages, newMessage];
-            return {
-              ...conv,
-              messages: updatedMessages,
-              lastMessage: newMessage.content,
-              messageCount: updatedMessages.length,
-              timestamp: newMessage.timestamp,
-            };
-          }
-          return conv;
-        }),
-      }));
-    },
-
-    clearMessages: (conversationId) => {
-      set((state) => ({
-        conversations: state.conversations.map((conv) =>
-          conv.id === conversationId
-            ? {
-                ...conv,
-                messages: [],
-                messageCount: 0,
-                lastMessage: '',
-              }
-            : conv,
-        ),
-      }));
     },
 
     // Input management actions
@@ -160,22 +66,11 @@ export const createChatStore = (
       set({ isLoading });
     },
 
-    // Initialization action
-    initializeConversations: (conversations) => {
-      set({
-        conversations: conversations.map((conv) => ({
-          ...conv,
-          messages: [],
-        })),
-        activeConversationId: null,
-      });
-    },
-
-    // Reset action
-    resetChat: () => {
+    // Reset action - resets UI state only
+    resetChatUi: () => {
       set({
         activeConversationId: null,
-        conversations: [],
+        input: '',
         isGenerating: CHAT_DEFAULTS.isGenerating,
         isLoading: CHAT_DEFAULTS.isLoading,
       });

@@ -17,7 +17,6 @@ export function validateApplicationStartup(): void {
       `📊 Database: ${envConfig.POSTGRES_HOST}:${envConfig.POSTGRES_PORT}/${envConfig.POSTGRES_DB}`,
     );
     console.log(`📧 AWS SES: ${envConfig.AWS_REGION}`);
-    console.log(`👥 Admin Emails: ${envConfig.ADMIN_EMAIL_1}, ${envConfig.ADMIN_EMAIL_2}`);
   } catch (error) {
     console.error('❌ Application startup validation failed');
     console.error(error);

@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { useStore } from 'zustand';
 import { ChatStoreContext } from '@/providers/chat-provider';
-import type { ChatStore } from '@/types/chat';
+import type { ChatStore } from '@/stores/chat-store';
 
 // Base hook with scope validation
 export const useChat = <T>(
@@ -19,56 +19,14 @@ export const useChat = <T>(
   return useStore(chatStore, selector);
 };
 
-// Conversation hooks
+// UI State Hooks - Active Conversation Selection
 export const useActiveConversationId = () =>
   useChat((state) => state.activeConversationId);
-
-export const useConversations = () =>
-  useChat((state) => state.conversations);
-
-export const useActiveConversation = () => {
-  const activeConversationId = useChat((state) => state.activeConversationId);
-  const conversations = useChat((state) => state.conversations);
-
-  if (!activeConversationId) return null;
-  return conversations.find(c => c.id === activeConversationId) || null;
-};
 
 export const useSetActiveConversation = () =>
   useChat((state) => state.setActiveConversation);
 
-export const useCreateNewConversation = () =>
-  useChat((state) => state.createNewConversation);
-
-export const useDeleteConversation = () =>
-  useChat((state) => state.deleteConversation);
-
-export const useArchiveConversation = () =>
-  useChat((state) => state.archiveConversation);
-
-export const useToggleStarredConversation = () =>
-  useChat((state) => state.toggleStarredConversation);
-
-export const useUpdateConversationTitle = () =>
-  useChat((state) => state.updateConversationTitle);
-
-// Message hooks - currentMessages is derived from active conversation
-export const useCurrentMessages = () => {
-  const activeConversationId = useChat((state) => state.activeConversationId);
-  const conversations = useChat((state) => state.conversations);
-
-  if (!activeConversationId) return [];
-  const activeConv = conversations.find(c => c.id === activeConversationId);
-  return activeConv?.messages || [];
-};
-
-export const useAddMessage = () =>
-  useChat((state) => state.addMessage);
-
-export const useClearMessages = () =>
-  useChat((state) => state.clearMessages);
-
-// Input hooks
+// Input Hooks
 export const useInput = () =>
   useChat((state) => state.input);
 
@@ -78,7 +36,7 @@ export const useSetInput = () =>
 export const useClearInput = () =>
   useChat((state) => state.clearInput);
 
-// Loading state hooks
+// Loading State Hooks
 export const useIsGenerating = () =>
   useChat((state) => state.isGenerating);
 
@@ -91,30 +49,11 @@ export const useSetIsGenerating = () =>
 export const useSetIsLoading = () =>
   useChat((state) => state.setIsLoading);
 
-// Initialization hooks
-export const useInitializeConversations = () =>
-  useChat((state) => state.initializeConversations);
-
-export const useResetChat = () =>
-  useChat((state) => state.resetChat);
+// Reset Hook
+export const useResetChatUi = () =>
+  useChat((state) => state.resetChatUi);
 
 // Composite hooks for related functionality
-export const useChatActions = () =>
-  useChat((state) => ({
-    setActiveConversation: state.setActiveConversation,
-    createNewConversation: state.createNewConversation,
-    deleteConversation: state.deleteConversation,
-    archiveConversation: state.archiveConversation,
-    toggleStarredConversation: state.toggleStarredConversation,
-    updateConversationTitle: state.updateConversationTitle,
-  }));
-
-export const useMessageActions = () =>
-  useChat((state) => ({
-    addMessage: state.addMessage,
-    clearMessages: state.clearMessages,
-  }));
-
 export const useLoadingStates = () =>
   useChat((state) => ({
     isGenerating: state.isGenerating,
@@ -123,12 +62,10 @@ export const useLoadingStates = () =>
     setIsLoading: state.setIsLoading,
   }));
 
-// Convenience hook for chat state
-export const useChatState = () =>
+// Convenience hook for chat UI state
+export const useChatUiState = () =>
   useChat((state) => ({
     activeConversationId: state.activeConversationId,
-    conversations: state.conversations,
-    
     isGenerating: state.isGenerating,
     isLoading: state.isLoading,
     input: state.input,

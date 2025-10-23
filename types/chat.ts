@@ -1,5 +1,3 @@
-import { MockConversation } from '@/lib/mock-data';
-
 // Message type for chat functionality
 export type Message = {
   id: string;
@@ -8,8 +6,20 @@ export type Message = {
   timestamp: Date;
 };
 
+// Conversation type matching database structure
+export type Conversation = {
+  id: string;
+  title: string;
+  lastMessage: string;
+  timestamp: Date;
+  isStarred: boolean;
+  isArchived: boolean;
+  messageCount: number;
+  projectId?: string;
+};
+
 // Extended conversation type with messages
-export type ConversationWithMessages = MockConversation & {
+export type ConversationWithMessages = Conversation & {
   messages: Message[];
 };
 
@@ -52,7 +62,7 @@ export type ChatActions = {
   setIsLoading: (isLoading: boolean) => void;
 
   // Initialization
-  initializeConversations: (conversations: MockConversation[]) => void;
+  initializeConversations: (conversations: Conversation[]) => void;
 
   // Reset
   resetChat: () => void;
