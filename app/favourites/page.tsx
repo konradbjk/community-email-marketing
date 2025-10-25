@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
@@ -9,15 +9,41 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Star, MessageSquare, Folder, ArrowLeft, Search } from "lucide-react"
-import { getStarredConversations, getStarredProjects } from "@/lib/mock-data"
 import { formatDistanceToNow } from "date-fns"
 
 export default function FavouritesPage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
+  const [starredConversations, setStarredConversations] = useState<any[]>([])
+  const [starredProjects, setStarredProjects] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const starredConversations = getStarredConversations()
-  const starredProjects = getStarredProjects()
+  // Fetch starred items from API
+  useEffect(() => {
+    const fetchStarredItems = async () => {
+      try {
+        const [conversationsRes, projectsRes] = await Promise.all([
+          fetch('/api/conversations?is_starred=true'),
+          fetch('/api/projects?is_starred=true')
+        ])
+
+        if (conversationsRes.ok) {
+          const convData = await conversationsRes.json()
+          setStarredConversations(convData)
+        }
+
+        if (projectsRes.ok) {
+          const projData = await projectsRes.json()
+          setStarredProjects(projData)
+        }
+      } catch (error) {
+        console.error('Failed to fetch starred items:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchStarredItems()
+  }, [])
 
   const filteredConversations = starredConversations.filter(conversation =>
     conversation.title.toLowerCase().includes(searchQuery.toLowerCase())
