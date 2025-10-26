@@ -48,7 +48,24 @@ cp .env.example .env.local
 # Edit .env.local with your configuration
 ```
 
-4. Run the development server
+4. Start the PostgreSQL database
+```bash
+docker-compose up -d
+```
+
+5. Seed the database
+
+**Required**: Seed reference data (response styles)
+```bash
+pnpm seed
+```
+
+**Development only**: Seed demo user and sample data
+```bash
+pnpm seed:dev
+```
+
+6. Run the development server
 ```bash
 pnpm dev
 ```
@@ -60,35 +77,72 @@ Open [http://localhost:3000](http://localhost:3000) to see the application.
 - `pnpm dev` - Start development server with Turbopack
 - `pnpm build` - Build for production
 - `pnpm start` - Start production server
+- `pnpm seed` - Seed reference data (response styles)
+- `pnpm seed:dev` - Seed reference + development data (demo user, projects, conversations)
 
 ## Project Structure
 
 ```
 app/                     # Next.js App Router
-├── admin/               # Admin panel pages
 ├── api/                 # API routes
-├── track/               # Email tracking endpoints
-└── unsubscribe/         # Public unsubscribe pages
+├── chat/                # Chat interface pages
+├── projects/            # Project management pages
+└── prompts/             # Prompt library pages
 
 components/              # React components
 ├── ui/                  # shadcn/ui components
-└── email/               # React Email templates
+├── chat/                # Chat interface components
+└── prompts/             # Prompt library components
+
+database/                # Database layer
+├── entities/            # TypeORM entities
+├── data-source.ts       # Database connection config
+├── schema/              # Pure SQL schema
+│   └── init.sql
+├── seeds/               # Seed data (TypeORM-based)
+│   ├── reference-data.ts
+│   └── development.ts
+└── scripts/
+    └── seed.ts          # Seed runner script
 
 lib/                     # Utilities and configuration
 ├── env-validation.ts    # Environment validation
-├── backend-config.ts    # Database configuration
-└── utils.ts            # Utility functions
+└── utils.ts             # Utility functions
 
 docs/                    # Documentation
 └── specification.md     # Product requirements
 ```
 
+## Database Setup
+
+The application uses PostgreSQL with TypeORM. Database initialization follows a clean separation:
+
+1. **Schema** (`database/schema/init.sql`): Pure DDL - table definitions, indexes, constraints
+2. **Reference Data** (`database/seeds/reference-data.ts`): Required system data (response styles)
+3. **Development Data** (`database/seeds/development.ts`): Demo user, projects, conversations (dev only)
+
+### First-time Setup
+
+```bash
+# Start PostgreSQL container
+docker-compose up -d
+
+# Seed reference data (required for all environments)
+pnpm seed
+
+# Seed development data (optional, for local development)
+pnpm seed:dev
+```
+
+**Note**: Users are created dynamically on first login via Auth.js/SSO. The users table exists but starts empty in production.
+
 ## Environment Variables
 
 Required variables:
 - `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
-- `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
-- `ADMIN_EMAIL_1`, `ADMIN_EMAIL_2`
+- `AUTH_SECRET` - Auth.js secret key for JWT signing
+- `BACKEND_API_URL`, `BACKEND_API_KEY` - Custom AI backend integration
+- `UPTIMIZE_TRANSCRIBE_ENDPOINT`, `UPTIMIZE_API_KEY` - Voice transcription
 
 See `lib/env-validation.ts` for complete environment configuration.
 

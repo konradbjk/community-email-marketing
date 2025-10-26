@@ -309,12 +309,18 @@ Optional Variables:
 ### Database Schema Considerations
 Core Entities (Based on Specification):
 - `users` - User profile, preferences, response style settings
-- `conversations` - Title, status (active/archived), creation/modification dates
-- `messages` - Content, role (human/ai), attachments, feedback, conversation relation
-- `projects` - Name, custom instructions, documents, user relation
-- `project_conversations` - Many-to-many relation between projects and conversations
-- `prompts` - Personal and shared prompts, forked relationships
-- `feedback` - User feedback on AI responses with categories and details
+- `conversations` - Title, status (active/archived), creation/modification dates, project relation
+- `messages` - **Custom Message format** (see `types/messages.ts`): TEXT ID, role (user/assistant/system/tool), content, tool_invocations JSONB, attachments JSONB
+- `projects` - Name, custom instructions (stored directly in projects table), documents, user relation
+- `prompts` - Personal and shared prompts, forked relationships, Langfuse integration
+- `response_styles` - Predefined response modes (Normal, Concise, Learning, Formal)
+- `user_profiles` - Editable user preferences separate from immutable SSO data
+
+**Important Schema Notes**:
+- **Messages**: Use TEXT IDs (not UUIDs) for custom backend compatibility. Tool calls and attachments stored as JSONB.
+- **Feedback**: NOT stored in database - all feedback goes to Langfuse annotation queue.
+- **Custom Instructions**: Stored directly in `projects` table for simplicity. Can be up to 10k characters.
+- **Projects-Conversations**: Direct FK relationship (conversation.project_id), no junction table needed.
 
 ### TypeScript Conventions
 - Prefer Types over Interfaces: Use types for data structures

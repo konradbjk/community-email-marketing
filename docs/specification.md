@@ -50,32 +50,32 @@ One significatn problem with conversation sharing, is that we can share a conver
 
 #### Feedback tracking
 
-Users can submit their fedback to the specific AI response. To maximize the chance of receiving feedback, we must make this process as simple for the user as possible. Due to this we suggest to have posivite - negative feedback rating. After giving a feedback user is prompted to optonally provide additional details.
+Users can submit feedback to specific AI responses. To maximize the chance of receiving feedback, we must make this process as simple for the user as possible. Due to this we suggest to have positive - negative feedback rating. After giving feedback user is prompted to optionally provide additional details.
 
-There are two buttons
+There are two buttons:
 
 - thumb up - positive
 - thumb down - negative
 
-Upon click, we display a modal with selection and text fields. Inside the select field, can select a high-level group of the idea. Below are suggested categories, which are a subject to change.
+Upon click, we display a modal with selection and text fields. Inside the select field, can select a high-level group of the issue. Below are suggested categories, which are subject to change:
 
 - UI Bug
 - Poor image / attachment understanding
 - Did not fully follow my instruction
 - Not factually correct
 - Should search the Snowflake
-- Issue with though process
+- Issue with thought process
 - Other
 
-The list will be modifiable via administration platform, and should reflect on the known and most common issues experienced.
+The list will be modifiable via administration platform, and should reflect the known and most common issues experienced.
 
 In the multi-line text field, a user can add additional information about their decision. We will provide a placeholder to guide a user what could be typed.
 
-On this modal, users can simply click `Send` without providing the additional context of their feedback. However, having two fields, creates a psychological suggestion to a user to provide at least one of the two things.
+On this modal, users can simply click `Send` without providing the additional context of their feedback. However, having two fields creates a psychological suggestion to a user to provide at least one of the two things.
 
-Clicking on `Cancel`, `X` icon in the top right corener of the modal, or outside the modal, will close it, and revert the feedback.
+Clicking on `Cancel`, `X` icon in the top right corner of the modal, or outside the modal, will close it and revert the feedback.
 
-Feedback is message based, it will be sent to langfuse and added to a dedicated annotation queue where trained individuals will look into the messages and porvided context to triage and potentially improve relevant parts of the system.
+**Feedback Storage**: All feedback is sent directly to **Langfuse** and added to a dedicated annotation queue where trained individuals will look into the messages and provided context to triage and potentially improve relevant parts of the system. **Feedback is not stored in the application database** - Langfuse serves as the single source of truth for all user feedback data.
 
 User feedback with additional notes have a higher review priority than those messages without.
 
