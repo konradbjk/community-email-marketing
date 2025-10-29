@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,8 +13,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { User, LogOut, Loader2 } from 'lucide-react';
+import { User, LogOut, Loader2, Archive } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ArchiveDialog } from './archive-dialog';
 
 interface UserBarProps {
   className?: string;
@@ -22,6 +24,7 @@ interface UserBarProps {
 export function UserBar({ className }: UserBarProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
 
   if (status === 'loading') {
     return (
@@ -87,6 +90,13 @@ export function UserBar({ className }: UserBarProps) {
             <User className='mr-2 h-4 w-4' />
             <span>Profile</span>
           </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setIsArchiveDialogOpen(true)}
+            className='cursor-pointer'
+          >
+            <Archive className='mr-2 h-4 w-4' />
+            <span>Archive</span>
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={handleSignOut}
@@ -97,6 +107,7 @@ export function UserBar({ className }: UserBarProps) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <ArchiveDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen} />
     </div>
   );
 }

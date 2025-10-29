@@ -130,6 +130,10 @@ export interface Message {
   experimental_attachments?: Attachment[]
   toolInvocations?: ToolInvocation[]
   parts?: MessagePart[]
+  metadata?: {
+    type?: "info" | "error" | "success"
+    retryMessage?: string
+  }
 }
 
 export interface ChatMessageProps extends Message {

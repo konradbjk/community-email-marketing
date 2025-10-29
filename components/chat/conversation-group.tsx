@@ -3,11 +3,11 @@
 import { getDateGroupLabel, type DateGroup } from "@/lib/date-utils"
 import { ChatItem } from "./chat-item"
 import { SidebarMenu } from "@/components/ui/sidebar"
-import type { MockConversation } from "@/lib/mock-data"
+import type { Conversation } from "@/types/chat"
 
 interface ConversationGroupProps {
   group: DateGroup
-  conversations: MockConversation[]
+  conversations: Conversation[]
   activeConversationId?: string
   onConversationClick: (conversationId: string) => void
   onToggleStar: (conversationId: string) => void

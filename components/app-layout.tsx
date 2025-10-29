@@ -5,10 +5,9 @@ import { useSession } from "next-auth/react"
 import { useEffect } from "react"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { ConversationSidebar } from "@/components/chat/conversation-sidebar"
-import { UserBar } from "@/components/layout/user-bar"
+import { ActionBar } from "@/components/layout/action-bar"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import ChatProvider from "@/providers/chat-provider"
-import { mockConversations } from "@/lib/mock-data"
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -45,7 +44,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   // Login page - no protection needed
   if (isLoginPage) {
     return (
-      <ChatProvider initialConversations={mockConversations}>
+      <ChatProvider>
         {children}
       </ChatProvider>
     )
@@ -54,7 +53,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   // Protected pages - require authentication
   return (
     <ProtectedRoute>
-      <ChatProvider initialConversations={mockConversations}>
+      <ChatProvider>
         <SidebarProvider>
           <div className="flex h-screen w-full">
             <ConversationSidebar
@@ -65,9 +64,9 @@ export function AppLayout({ children }: AppLayoutProps) {
             <SidebarInset className="flex flex-col w-full">
               {children}
             </SidebarInset>
-            {/* User Bar positioned in top-right corner */}
+            {/* Action Bar positioned in top-right corner */}
             <div className="fixed top-4 right-4 z-50">
-              <UserBar />
+              <ActionBar />
             </div>
           </div>
         </SidebarProvider>

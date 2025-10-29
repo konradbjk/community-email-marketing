@@ -10,12 +10,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
-import type { MockConversation, MockProject } from "@/lib/mock-data"
 import { useRouter } from "next/navigation"
 
 interface StarredSectionProps {
-  starredConversations: MockConversation[]
-  starredProjects: MockProject[]
+  starredConversations: any[]
+  starredProjects: any[]
   activeConversationId?: string
   onConversationClick: (conversationId: string) => void
   onProjectClick: (projectId: string) => void
@@ -56,7 +55,7 @@ export function StarredSection({
         {/* Display limited starred items */}
         {displayedItems.map((item) => {
           if (item.type === 'conversation') {
-            const conversation = item as MockConversation & { type: 'conversation' }
+            const conversation = item
             const itemKey = `conv-${conversation.id}`
             const isHovered = hoveredItems[itemKey] || false
             return (
@@ -106,7 +105,7 @@ export function StarredSection({
               </div>
             )
           } else {
-            const project = item as MockProject & { type: 'project' }
+            const project = item
             const itemKey = `proj-${project.id}`
             const isProjectHovered = hoveredItems[itemKey] || false
             return (

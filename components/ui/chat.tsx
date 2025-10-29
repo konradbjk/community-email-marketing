@@ -7,10 +7,10 @@ import {
   useState,
   type ReactElement,
 } from "react"
-import { ThumbsDown, ThumbsUp } from "lucide-react"
+import { Copy, Pencil, RefreshCcw, ThumbsDown, ThumbsUp } from "lucide-react"
+import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import { type Message } from "@/components/ui/chat-message"
 import { CopyButton } from "@/components/ui/copy-button"
 import { MessageInput } from "@/components/ui/message-input"
@@ -18,6 +18,7 @@ import { MessageList } from "@/components/ui/message-list"
 import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ui/ai/conversation"
 import { Message as AIMessage, MessageContent as AIMessageContent } from "@/components/ui/ai/message"
 import { Response } from "@/components/ui/ai/response"
+import { Actions, Action } from "@/components/ui/ai/actions"
 
 interface ChatPropsBase {
   handleSubmit: (
@@ -36,6 +37,8 @@ interface ChatPropsBase {
   ) => void
   setMessages?: (messages: any[]) => void
   transcribeAudio?: (blob: Blob) => Promise<string>
+  onRetry?: (message: Message) => void
+  onEdit?: (message: Message) => void
 }
 
 interface ChatPropsWithoutSuggestions extends ChatPropsBase {
@@ -63,6 +66,8 @@ export function Chat({
   onRateResponse,
   setMessages,
   transcribeAudio,
+  onRetry,
+  onEdit,
 }: ChatProps) {
   const lastMessage = messages.at(-1)
   const isEmpty = messages.length === 0
@@ -155,41 +160,126 @@ export function Chat({
     }
   }, [stop, setMessages, messagesRef])
 
+  const handleCopyMessage = useCallback((content: string) => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard
+        .writeText(content)
+        .then(() => {
+          toast.success("Copied to clipboard")
+        })
+        .catch(() => {
+          toast.error("Failed to copy message")
+        })
+    } else {
+      toast.error("Clipboard not available in this environment")
+    }
+  }, [])
+
   const messageOptions = useCallback(
-    (message: Message) => ({
-      actions: onRateResponse ? (
-        <>
-          <div className="border-r pr-1">
-            <CopyButton
-              content={message.content}
-              copyMessage="Copied response to clipboard!"
-            />
-          </div>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-6 w-6"
-            onClick={() => onRateResponse(message.id, "thumbs-up")}
+    (message: Message) => {
+      if (message.role === "assistant") {
+        const assistantActions = [
+          <Action
+            key="copy"
+            label="Copy"
+            tooltip="Copy"
+            onClick={() => handleCopyMessage(message.content)}
+          >
+            <Copy className="h-4 w-4" />
+          </Action>,
+        ]
+
+        if (onRetry) {
+          assistantActions.push(
+            <Action
+              key="regenerate"
+              label="Regenerate"
+              tooltip="Regenerate"
+              onClick={() => onRetry(message)}
+            >
+              <RefreshCcw className="h-4 w-4" />
+            </Action>
+          )
+        }
+
+        assistantActions.push(
+          <Action
+            key="like"
+            label="Like"
+            tooltip="Like"
+            onClick={() => onRateResponse?.(message.id, "thumbs-up")}
           >
             <ThumbsUp className="h-4 w-4" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="h-6 w-6"
-            onClick={() => onRateResponse(message.id, "thumbs-down")}
+          </Action>
+        )
+
+        assistantActions.push(
+          <Action
+            key="dislike"
+            label="Dislike"
+            tooltip="Dislike"
+            onClick={() => onRateResponse?.(message.id, "thumbs-down")}
           >
             <ThumbsDown className="h-4 w-4" />
-          </Button>
-        </>
-      ) : (
-        <CopyButton
-          content={message.content}
-          copyMessage="Copied response to clipboard!"
-        />
-      ),
-    }),
-    [onRateResponse]
+          </Action>
+        )
+
+        return {
+          actions: (
+            <Actions className="mt-2">{assistantActions}</Actions>
+          ),
+        }
+      }
+
+      if (message.role === "user") {
+        if (onEdit) {
+          return {
+            actions: (
+              <Actions className="mt-2">
+                <Action
+                  label="Edit"
+                  tooltip="Edit"
+                  onClick={() => onEdit(message)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Action>
+                <Action
+                  label="Copy"
+                  tooltip="Copy"
+                  onClick={() => handleCopyMessage(message.content)}
+                >
+                  <Copy className="h-4 w-4" />
+                </Action>
+              </Actions>
+            ),
+          }
+        }
+
+        return {
+          actions: (
+            <Actions className="mt-2">
+              <Action
+                label="Copy"
+                tooltip="Copy"
+                onClick={() => handleCopyMessage(message.content)}
+              >
+                <Copy className="h-4 w-4" />
+              </Action>
+            </Actions>
+          ),
+        }
+      }
+
+      return {
+        actions: (
+          <CopyButton
+            content={message.content}
+            copyMessage="Copied response to clipboard!"
+          />
+        ),
+      }
+    },
+    [handleCopyMessage, onEdit, onRateResponse, onRetry]
   )
 
   return (

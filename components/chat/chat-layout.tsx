@@ -8,7 +8,6 @@ import {
 } from '@/components/ui/sidebar';
 import { ConversationSidebar } from './conversation-sidebar';
 import { Chat } from '@/components/ui/chat';
-import { mockConversations } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
 import { MessageSquare } from 'lucide-react';
 
@@ -24,14 +23,12 @@ export function ChatLayout() {
   const [activeConversationId, setActiveConversationId] = useState<
     string | undefined
   >();
+  const [activeConversationTitle, setActiveConversationTitle] = useState<
+    string | undefined
+  >();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-
-  // Find active conversation
-  const activeConversation = mockConversations.find(
-    (conv) => conv.id === activeConversationId,
-  );
 
   // Mock chat handlers
   const handleSubmit = async (event?: { preventDefault?: () => void }) => {
@@ -66,25 +63,35 @@ export function ChatLayout() {
     setInput(e.target.value);
   };
 
-  const handleConversationSelect = (conversationId: string) => {
+  const handleConversationSelect = async (conversationId: string) => {
     setActiveConversationId(conversationId);
-    // TODO: Load conversation messages from API
-    setMessages([
-      {
-        id: 'demo-1',
-        role: 'user',
-        content: "Hello! I'd like to discuss the topic from this conversation.",
-        timestamp: new Date(),
-      },
-      {
-        id: 'demo-2',
-        role: 'assistant',
-        content: `Welcome to the conversation "${
-          mockConversations.find((c) => c.id === conversationId)?.title
-        }". How can I help you today?`,
-        timestamp: new Date(),
-      },
-    ]);
+
+    // Fetch conversation from API
+    try {
+      const response = await fetch(`/api/conversations/${conversationId}`);
+      if (response.ok) {
+        const conversation = await response.json();
+        setActiveConversationTitle(conversation.title);
+
+        // TODO: Load actual conversation messages from API
+        setMessages([
+          {
+            id: 'demo-1',
+            role: 'user',
+            content: "Hello! I'd like to discuss the topic from this conversation.",
+            timestamp: new Date(),
+          },
+          {
+            id: 'demo-2',
+            role: 'assistant',
+            content: `Welcome to the conversation "${conversation.title}". How can I help you today?`,
+            timestamp: new Date(),
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error('Failed to load conversation:', error);
+    }
   };
 
   const handleProjectSelect = (projectId: string) => {
@@ -123,7 +130,7 @@ export function ChatLayout() {
             <div className='flex items-center gap-2'>
               <MessageSquare className='h-5 w-5 text-muted-foreground' />
               <h1 className='text-lg font-semibold'>
-                {activeConversation?.title || 'New Chat'}
+                {activeConversationTitle || 'New Chat'}
               </h1>
             </div>
           </header>

@@ -1,10 +1,10 @@
 "use client"
 
-import { MessageSquare, Plus, Folder } from "lucide-react"
+import { MessageSquare, Plus, Folder, Archive } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-type NavigationTab = "chats" | "projects"
+type NavigationTab = "chats" | "projects" | "archived"
 
 interface SidebarNavigationProps {
   activeTab: NavigationTab
@@ -54,6 +54,18 @@ export function SidebarNavigation({
         >
           <Folder className="h-4 w-4" />
           Projects
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onTabChange("archived")}
+          className={cn(
+            "flex-1 gap-2 h-8",
+            activeTab === "archived" && "bg-background shadow-sm"
+          )}
+        >
+          <Archive className="h-4 w-4" />
+          Archive
         </Button>
       </div>
     </div>
