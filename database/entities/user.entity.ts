@@ -28,6 +28,9 @@ export class User {
   @Column({ type: 'varchar', length: 500, nullable: true })
   image?: string;
 
+  @Column({ type: 'timestamp with time zone', nullable: true })
+  last_login?: Date;
+
   @CreateDateColumn({ type: 'timestamp with time zone' })
   created_at: Date;
 

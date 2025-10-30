@@ -1,4 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, JoinColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToOne,
+  JoinColumn,
+  ManyToOne,
+} from 'typeorm';
 
 @Entity('user_profiles')
 export class UserProfile {
@@ -9,25 +18,25 @@ export class UserProfile {
   user_id: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  role?: string;
+  role: string | null;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  department?: string;
+  department: string | null;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
-  region?: string;
+  region: string | null;
 
   @Column({ type: 'text', nullable: true })
-  role_description?: string;
+  role_description: string | null;
 
   @Column({ type: 'uuid', nullable: true })
-  ai_response_style_id?: string;
+  ai_response_style_id: string | null;
 
   @Column({ type: 'text', nullable: true })
-  custom_response_style?: string;
+  custom_response_style: string | null;
 
   @Column({ type: 'text', nullable: true })
-  custom_instructions?: string;
+  custom_instructions: string | null;
 
   @CreateDateColumn({ type: 'timestamp with time zone' })
   created_at: Date;
@@ -35,7 +44,6 @@ export class UserProfile {
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updated_at: Date;
 
-  // Relations (using string references to avoid circular dependencies)
   @OneToOne('User', 'profile', { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
   user: any;

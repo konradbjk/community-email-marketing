@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { User, Briefcase, MessageSquare, Shield, Loader2 } from 'lucide-react';
 import { useProfile, useUpdateProfile } from '@/hooks/use-profile';
+import { useResponseStyles } from '@/hooks/use-response-styles';
 import { toast } from 'sonner';
 import type { UpdateProfileData } from '@/types/profile';
 import { cn } from '@/lib/utils';
@@ -31,6 +32,11 @@ import { cn } from '@/lib/utils';
 export default function ProfilePage() {
   const { data: profile, isLoading, error } = useProfile();
   const updateProfile = useUpdateProfile();
+  const {
+    data: responseStylesData,
+    isLoading: isLoadingResponseStyles,
+    error: responseStylesError,
+  } = useResponseStyles();
 
   const [editingField, setEditingField] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
@@ -47,14 +53,25 @@ export default function ProfilePage() {
   // Update form data when profile loads
   useEffect(() => {
     if (profile) {
+      const hasCustomStyle =
+        !profile.aiResponseStyleId &&
+        Boolean(
+          (profile.customResponseStyle &&
+            profile.customResponseStyle.trim().length > 0) ||
+            (profile.customInstructions &&
+              profile.customInstructions.trim().length > 0),
+        );
+      const aiResponseStyleId =
+        profile.aiResponseStyleId ?? (hasCustomStyle ? 'advanced' : '');
+
       setFormData({
         role: profile.role || '',
         department: profile.department || '',
         region: profile.region || '',
         roleDescription: profile.roleDescription || '',
-        aiResponseStyleId: profile.aiResponseStyleId || '',
-        customResponseStyle: profile.customResponseStyle || '',
-        customInstructions: profile.customInstructions || '',
+        aiResponseStyleId,
+        customResponseStyle: profile.customResponseStyle ?? '',
+        customInstructions: profile.customInstructions ?? '',
       });
     }
   }, [profile]);
@@ -76,54 +93,54 @@ export default function ProfilePage() {
       toast.success('Profile updated successfully');
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : 'Failed to update profile'
+        error instanceof Error ? error.message : 'Failed to update profile',
       );
     }
   };
 
   const handleCancel = () => {
     if (profile) {
+      const hasCustomStyle =
+        !profile.aiResponseStyleId &&
+        Boolean(
+          (profile.customResponseStyle &&
+            profile.customResponseStyle.trim().length > 0) ||
+            (profile.customInstructions &&
+              profile.customInstructions.trim().length > 0),
+        );
+      const aiResponseStyleId =
+        profile.aiResponseStyleId ?? (hasCustomStyle ? 'advanced' : '');
+
       setFormData({
         role: profile.role || '',
         department: profile.department || '',
         region: profile.region || '',
         roleDescription: profile.roleDescription || '',
-        aiResponseStyleId: profile.aiResponseStyleId || '',
-        customResponseStyle: profile.customResponseStyle || '',
-        customInstructions: profile.customInstructions || '',
+        aiResponseStyleId,
+        customResponseStyle: profile.customResponseStyle ?? '',
+        customInstructions: profile.customInstructions ?? '',
       });
     }
     setHasChanges(false);
     setEditingField(null);
   };
 
-  const responseStyles = [
-    {
-      id: '550e8400-e29b-41d4-a716-446655440001',
-      label: 'Concise',
-      description: 'Brief, to-the-point responses',
-    },
-    {
-      id: '550e8400-e29b-41d4-a716-446655440002',
-      label: 'Detailed',
-      description: 'Comprehensive explanations with context',
-    },
-    {
-      id: '550e8400-e29b-41d4-a716-446655440003',
-      label: 'Analytical',
-      description: 'Data-driven insights with methodology',
-    },
-    {
-      id: '550e8400-e29b-41d4-a716-446655440004',
-      label: 'Conversational',
-      description: 'Friendly, collaborative tone',
-    },
-    {
-      id: 'advanced',
-      label: 'Advanced (Custom)',
-      description: 'Define your own custom response style',
-    },
-  ];
+  const responseStyleOptions = useMemo(() => {
+    const styles = responseStylesData ?? [];
+    const normalized = styles.map((style) => ({
+      id: style.id,
+      label: style.label,
+      description: style.description ?? 'No description provided',
+    }));
+    return [
+      ...normalized,
+      {
+        id: 'advanced',
+        label: 'Advanced (Custom)',
+        description: 'Define your own custom response style',
+      },
+    ];
+  }, [responseStylesData]);
 
   if (isLoading) {
     return (
@@ -275,7 +292,7 @@ export default function ProfilePage() {
                       <Label htmlFor='department'>Department</Label>
                       <Input
                         id='department'
-                        value={formData.department}
+                        value={formData.department ?? ''}
                         onChange={(e) =>
                           handleFieldChange('department', e.target.value)
                         }
@@ -283,7 +300,7 @@ export default function ProfilePage() {
                         className={cn(
                           'cursor-pointer',
                           editingField === 'department' &&
-                            'ring-2 ring-primary'
+                            'ring-2 ring-primary',
                         )}
                         placeholder='Double-click to edit'
                       />
@@ -292,14 +309,14 @@ export default function ProfilePage() {
                       <Label htmlFor='region'>Region</Label>
                       <Input
                         id='region'
-                        value={formData.region}
+                        value={formData.region ?? ''}
                         onChange={(e) =>
                           handleFieldChange('region', e.target.value)
                         }
                         onDoubleClick={() => handleDoubleClick('region')}
                         className={cn(
                           'cursor-pointer',
-                          editingField === 'region' && 'ring-2 ring-primary'
+                          editingField === 'region' && 'ring-2 ring-primary',
                         )}
                         placeholder='Double-click to edit'
                       />
@@ -325,14 +342,14 @@ export default function ProfilePage() {
                     <Label htmlFor='role'>Job Title</Label>
                     <Input
                       id='role'
-                      value={formData.role}
+                      value={formData.role ?? ''}
                       onChange={(e) =>
                         handleFieldChange('role', e.target.value)
                       }
                       onDoubleClick={() => handleDoubleClick('role')}
                       className={cn(
                         'cursor-pointer',
-                        editingField === 'role' && 'ring-2 ring-primary'
+                        editingField === 'role' && 'ring-2 ring-primary',
                       )}
                       placeholder='Double-click to edit'
                     />
@@ -343,17 +360,15 @@ export default function ProfilePage() {
                       id='roleDescription'
                       rows={6}
                       placeholder='Double-click to edit...'
-                      value={formData.roleDescription}
+                      value={formData.roleDescription ?? ''}
                       onChange={(e) =>
                         handleFieldChange('roleDescription', e.target.value)
                       }
-                      onDoubleClick={() =>
-                        handleDoubleClick('roleDescription')
-                      }
+                      onDoubleClick={() => handleDoubleClick('roleDescription')}
                       className={cn(
                         'cursor-pointer',
                         editingField === 'roleDescription' &&
-                          'ring-2 ring-primary'
+                          'ring-2 ring-primary',
                       )}
                     />
                     <p className='text-sm text-muted-foreground'>
@@ -378,35 +393,55 @@ export default function ProfilePage() {
                 </CardHeader>
                 <CardContent className='space-y-6'>
                   <div className='space-y-3'>
-                    <Label htmlFor='responseStyle'>Response Style</Label>
+                    <Label htmlFor='defaultResponseStyle'>
+                      Default Response Style
+                    </Label>
                     <Select
-                      value={formData.aiResponseStyleId}
+                      value={formData.aiResponseStyleId || undefined}
                       onValueChange={(value) => {
                         handleFieldChange('aiResponseStyleId', value);
                         setHasChanges(true);
                       }}
+                      disabled={isLoadingResponseStyles}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder='Select a response style' />
+                      <SelectTrigger id='defaultResponseStyle'>
+                        <SelectValue
+                          placeholder={
+                            isLoadingResponseStyles
+                              ? 'Loading response styles...'
+                              : 'Select a response style'
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {responseStyles.map((style) => (
-                          <SelectItem key={style.id} value={style.id}>
+                        {responseStyleOptions.map((style) => (
+                          <SelectItem
+                            key={style.id}
+                            value={style.id}
+                            title={style.description ?? undefined}
+                          >
                             {style.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    {(() => {
-                      const selectedStyle = responseStyles.find(
-                        (style) => style.id === formData.aiResponseStyleId
-                      );
-                      return selectedStyle ? (
-                        <p className='text-sm text-muted-foreground'>
-                          {selectedStyle.description}
-                        </p>
-                      ) : null;
-                    })()}
+                    {responseStylesError ? (
+                      <p className='text-sm text-destructive'>
+                        Failed to load response styles.
+                      </p>
+                    ) : (
+                      (() => {
+                        const selectedStyle = responseStyleOptions.find(
+                          (style) => style.id === formData.aiResponseStyleId,
+                        );
+                        return selectedStyle &&
+                          selectedStyle.id !== 'advanced' ? (
+                          <p className='text-sm text-muted-foreground'>
+                            {selectedStyle.description}
+                          </p>
+                        ) : null;
+                      })()
+                    )}
                   </div>
 
                   {/* Custom Response Style - only show if Advanced is selected */}
@@ -419,11 +454,11 @@ export default function ProfilePage() {
                         id='customResponseStyle'
                         rows={4}
                         placeholder='Double-click to edit...'
-                        value={formData.customResponseStyle}
+                        value={formData.customResponseStyle ?? ''}
                         onChange={(e) =>
                           handleFieldChange(
                             'customResponseStyle',
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         onDoubleClick={() =>
@@ -432,7 +467,7 @@ export default function ProfilePage() {
                         className={cn(
                           'cursor-pointer',
                           editingField === 'customResponseStyle' &&
-                            'ring-2 ring-primary'
+                            'ring-2 ring-primary',
                         )}
                       />
                       <p className='text-sm text-muted-foreground'>
@@ -450,7 +485,7 @@ export default function ProfilePage() {
                       id='customInstructions'
                       rows={6}
                       placeholder='Double-click to edit...'
-                      value={formData.customInstructions}
+                      value={formData.customInstructions ?? ''}
                       onChange={(e) =>
                         handleFieldChange('customInstructions', e.target.value)
                       }
@@ -460,7 +495,7 @@ export default function ProfilePage() {
                       className={cn(
                         'cursor-pointer',
                         editingField === 'customInstructions' &&
-                          'ring-2 ring-primary'
+                          'ring-2 ring-primary',
                       )}
                     />
                     <p className='text-sm text-muted-foreground'>

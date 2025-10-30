@@ -14,12 +14,18 @@ async function fetchProfile(): Promise<UserProfile> {
 
 // Update user profile
 async function updateProfile(data: UpdateProfileData): Promise<UserProfile> {
+  const payload: UpdateProfileData = { ...data }
+
+  if (payload.aiResponseStyleId === 'advanced' || payload.aiResponseStyleId === '') {
+    payload.aiResponseStyleId = null
+  }
+
   const response = await fetch("/api/profile", {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   })
 
   if (!response.ok) {
