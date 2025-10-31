@@ -115,6 +115,39 @@ Your code must respect the client/server boundary.
 
 ---
 
+## Principle 8: Documentation and Diagrams
+
+**Documentation Rules:**
+- **Product/Feature Documentation**: Goes in `/docs` directory
+  - Feature specifications
+  - Implementation guides
+  - User flows and behavior
+  - API documentation
+  - Architecture decisions
+
+- **Project Structure Documentation**: Goes in `CLAUDE.md`
+  - Tech stack information
+  - File structure
+  - Coding conventions
+  - Development patterns
+
+**Diagram Rules:**
+- **NEVER use ASCII art diagrams**
+- **ALWAYS use proper diagram tools:**
+  - **Mermaid** for flowcharts, sequences, state diagrams
+  - **D2** for architecture and complex diagrams
+- Place diagrams in documentation markdown files
+- Use code blocks with proper language tags: ```mermaid or ```d2
+
+Example:
+```mermaid
+graph LR
+    A[Login] --> B[Authenticate]
+    B --> C[Dashboard]
+```
+
+---
+
 ## Development Commands
 
 - Development server: `pnpm dev` (uses Turbopack) - we have this server running all the time for preview
@@ -141,7 +174,11 @@ Internal chatbot application for Merck that enables multi-turn conversations wit
 
 ### Backend & Data
 - Database: **PostgreSQL** with **TypeORM**
-- Authentication: POC stage - no auth system yet
+- Authentication: **Auth.js v5** (NextAuth) with Credentials provider (POC)
+  - JWT session strategy
+  - Client-side route protection
+  - API middleware protection
+  - SSO-ready structure (Keycloak planned)
 - Environment: **Zod** validation in `lib/env-validation.ts`
 
 ### UI Component System
@@ -213,16 +250,20 @@ types/                  # TypeScript type definitions
 
 ## URL Structure
 
-### Main Routes (POC - No Auth)
-- `/` - Landing page
-- `/chat` - Main chat interface with sidebar
-- `/chat/[id]` - Specific conversation view with chat ID
-- `/projects` - Project management dashboard
-- `/projects/[projectId]` - Project detail and conversations
-- `/prompts` - Prompt library browser
-- `/prompts/[id]` - Prompt detail and usage
+### Main Routes
+- `/` - Login page (redirects to `/chat` if authenticated)
+- `/chat` - Main chat interface with sidebar (protected)
+- `/chat/[id]` - Specific conversation view with chat ID (protected)
+- `/profile` - User profile management (protected)
+- `/favourites` - Favourited items (protected)
+- `/projects` - Project management dashboard (protected)
+- `/projects/[projectId]` - Project detail and conversations (protected)
+- `/prompts` - Prompt library browser (protected)
+- `/prompts/[id]` - Prompt detail and usage (protected)
 
 ### API Routes
+- `/api/auth/[...nextauth]` - Auth.js authentication handlers
+- `/api/profile` - User profile GET/PATCH (protected)
 - `/api/v1/conversations` - Conversation CRUD operations
 - `/api/v1/messages` - Message handling and AI responses
 - `/api/v1/projects` - Project management
@@ -236,6 +277,7 @@ types/                  # TypeScript type definitions
 The application uses comprehensive environment validation via `lib/env-validation.ts`:
 
 Required Variables:
+- **Authentication**: `AUTH_SECRET` - Auth.js secret key for JWT signing
 - **PostgreSQL**: `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
 - **Backend API**: `BACKEND_API_URL`, `BACKEND_API_KEY` (for custom AI backend integration)
 - **Transcription**: `UPTIMIZE_TRANSCRIBE_ENDPOINT`, `UPTIMIZE_API_KEY`

@@ -1,0 +1,27 @@
+name: "merck-chatbot-dev"
+
+x-restart: &default-restart
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: postgres:18
+    container_name: postgres-merck
+    <<: *default-restart
+    env_file: "postgres.env"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      node-network:
+        aliases:
+          - postgres
+
+volumes:
+  postgres-data:
+
+networks:
+  node-network:
+    driver: bridge

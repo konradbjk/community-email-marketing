@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,39 +22,79 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { User, Save, ArrowLeft, Briefcase, MessageSquare } from 'lucide-react';
+import { User, Briefcase, MessageSquare, Shield, Loader2 } from 'lucide-react';
+import { useProfile, useUpdateProfile } from '@/hooks/use-profile';
+import { toast } from 'sonner';
+import type { UpdateProfileData } from '@/types/profile';
+import { cn } from '@/lib/utils';
 
 export default function ProfilePage() {
-  const router = useRouter();
+  const { data: profile, isLoading, error } = useProfile();
+  const updateProfile = useUpdateProfile();
 
-  // Mock user data - in real app this would come from auth/database
-  const [profile, setProfile] = useState({
-    name: 'Alex Johnson',
-    email: 'alex.johnson@merck.com',
-    role: 'Senior Marketing Manager',
-    department: 'Oncology Business Unit',
-    region: 'EMEA',
-    roleDescription:
-      'I lead marketing analytics for the Oncology portfolio, focusing on digital channel optimization and customer segmentation strategies. My primary responsibilities include analyzing email campaign performance, field vs digital interaction ratios, and cross-regional benchmarking.',
-    aiResponseStyleId: '550e8400-e29b-41d4-a716-446655440001', // Using UUID for database storage
-    customResponseStyle: '', // For advanced/custom style
-    customInstructions:
-      'When analyzing data, please focus on actionable insights and include benchmarks against regional averages. I prefer visual representations when discussing trends and always want recommendations prioritized by impact and feasibility.',
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [formData, setFormData] = useState<UpdateProfileData>({
+    role: '',
+    department: '',
+    region: '',
+    roleDescription: '',
+    aiResponseStyleId: '',
+    customResponseStyle: '',
+    customInstructions: '',
   });
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [tempProfile, setTempProfile] = useState(profile);
+  // Update form data when profile loads
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        role: profile.role || '',
+        department: profile.department || '',
+        region: profile.region || '',
+        roleDescription: profile.roleDescription || '',
+        aiResponseStyleId: profile.aiResponseStyleId || '',
+        customResponseStyle: profile.customResponseStyle || '',
+        customInstructions: profile.customInstructions || '',
+      });
+    }
+  }, [profile]);
 
-  const handleSave = () => {
-    setProfile(tempProfile);
-    setIsEditing(false);
-    // In real app, save to backend/database
-    console.log('Profile saved:', tempProfile);
+  const handleFieldChange = (field: keyof UpdateProfileData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setHasChanges(true);
+  };
+
+  const handleDoubleClick = (field: string) => {
+    setEditingField(field);
+  };
+
+  const handleSave = async () => {
+    try {
+      await updateProfile.mutateAsync(formData);
+      setHasChanges(false);
+      setEditingField(null);
+      toast.success('Profile updated successfully');
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to update profile'
+      );
+    }
   };
 
   const handleCancel = () => {
-    setTempProfile(profile);
-    setIsEditing(false);
+    if (profile) {
+      setFormData({
+        role: profile.role || '',
+        department: profile.department || '',
+        region: profile.region || '',
+        roleDescription: profile.roleDescription || '',
+        aiResponseStyleId: profile.aiResponseStyleId || '',
+        customResponseStyle: profile.customResponseStyle || '',
+        customInstructions: profile.customInstructions || '',
+      });
+    }
+    setHasChanges(false);
+    setEditingField(null);
   };
 
   const responseStyles = [
@@ -86,8 +125,42 @@ export default function ProfilePage() {
     },
   ];
 
+  if (isLoading) {
+    return (
+      <>
+        <header className='flex h-16 shrink-0 items-center gap-2 border-b px-4'>
+          <SidebarTrigger className='-ml-1' />
+          <div className='flex items-center gap-2'>
+            <User className='h-5 w-5 text-muted-foreground' />
+            <h1 className='text-lg font-semibold'>User Profile</h1>
+          </div>
+        </header>
+        <div className='flex-1 flex items-center justify-center'>
+          <Loader2 className='h-8 w-8 animate-spin text-muted-foreground' />
+        </div>
+      </>
+    );
+  }
+
+  if (error || !profile) {
+    return (
+      <>
+        <header className='flex h-16 shrink-0 items-center gap-2 border-b px-4'>
+          <SidebarTrigger className='-ml-1' />
+          <div className='flex items-center gap-2'>
+            <User className='h-5 w-5 text-muted-foreground' />
+            <h1 className='text-lg font-semibold'>User Profile</h1>
+          </div>
+        </header>
+        <div className='flex-1 flex items-center justify-center'>
+          <p className='text-destructive'>Failed to load profile</p>
+        </div>
+      </>
+    );
+  }
+
   return (
-    <>
+    <div className='flex flex-col h-full relative'>
       {/* Header */}
       <header className='flex h-16 shrink-0 items-center gap-2 border-b px-4'>
         <SidebarTrigger className='-ml-1' />
@@ -95,32 +168,11 @@ export default function ProfilePage() {
           <User className='h-5 w-5 text-muted-foreground' />
           <h1 className='text-lg font-semibold'>User Profile</h1>
         </div>
-        <div className='ml-auto'>
-          {isEditing ? (
-            <div className='flex gap-2'>
-              <Button variant='outline' onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button onClick={handleSave} className='gap-2'>
-                <Save className='h-4 w-4' />
-                Save Changes
-              </Button>
-            </div>
-          ) : (
-            <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
-          )}
-        </div>
       </header>
 
       {/* Content */}
-      <div className='flex-1 overflow-auto p-6'>
+      <div className='flex-1 overflow-auto p-6 pb-24'>
         <div className='max-w-4xl mx-auto space-y-6'>
-          <div className='space-y-2'>
-            <p className='text-muted-foreground'>
-              Customize your profile and AI interaction preferences
-            </p>
-          </div>
-
           <Tabs defaultValue='basic' className='space-y-6'>
             <TabsList>
               <TabsTrigger value='basic'>Basic Information</TabsTrigger>
@@ -129,6 +181,84 @@ export default function ProfilePage() {
             </TabsList>
 
             <TabsContent value='basic' className='space-y-6'>
+              {/* Immutable Section - From Merck SSO */}
+              <Card>
+                <CardHeader>
+                  <div className='flex items-center justify-between'>
+                    <div>
+                      <CardTitle className='flex items-center gap-2'>
+                        <Shield className='h-5 w-5' />
+                        Identity Information
+                      </CardTitle>
+                      <CardDescription>
+                        Managed by Merck SSO - Cannot be modified
+                      </CardDescription>
+                    </div>
+                    <Badge variant='secondary' className='gap-1'>
+                      <Shield className='h-3 w-3' />
+                      From Merck SSO
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className='space-y-4'>
+                  <div className='grid grid-cols-2 gap-4'>
+                    <div className='space-y-2'>
+                      <Label
+                        htmlFor='merck_id'
+                        className='text-muted-foreground'
+                      >
+                        Merck ID
+                      </Label>
+                      <Input
+                        id='merck_id'
+                        value={profile.merck_id}
+                        disabled
+                        className='bg-muted'
+                      />
+                    </div>
+                    <div className='space-y-2'>
+                      <Label htmlFor='email' className='text-muted-foreground'>
+                        Email
+                      </Label>
+                      <Input
+                        id='email'
+                        value={profile.email}
+                        disabled
+                        className='bg-muted'
+                      />
+                    </div>
+                  </div>
+                  <div className='grid grid-cols-2 gap-4'>
+                    <div className='space-y-2'>
+                      <Label htmlFor='name' className='text-muted-foreground'>
+                        First Name
+                      </Label>
+                      <Input
+                        id='name'
+                        value={profile.name}
+                        disabled
+                        className='bg-muted'
+                      />
+                    </div>
+                    <div className='space-y-2'>
+                      <Label
+                        htmlFor='surname'
+                        className='text-muted-foreground'
+                      >
+                        Last Name
+                      </Label>
+                      <Input
+                        id='surname'
+                        value={profile.surname}
+                        disabled
+                        className='bg-muted'
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Editable Section - User Preferences */}
               <Card>
                 <CardHeader>
                   <CardTitle className='flex items-center gap-2'>
@@ -136,72 +266,42 @@ export default function ProfilePage() {
                     Personal Information
                   </CardTitle>
                   <CardDescription>
-                    Your basic profile information
+                    Double-click to edit your work-related information
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-4'>
                   <div className='grid grid-cols-2 gap-4'>
                     <div className='space-y-2'>
-                      <Label htmlFor='name'>Full Name</Label>
-                      <Input
-                        id='name'
-                        value={isEditing ? tempProfile.name : profile.name}
-                        onChange={(e) =>
-                          setTempProfile((prev) => ({
-                            ...prev,
-                            name: e.target.value,
-                          }))
-                        }
-                        disabled={!isEditing}
-                      />
-                    </div>
-                    <div className='space-y-2'>
-                      <Label htmlFor='email'>Email</Label>
-                      <Input
-                        id='email'
-                        type='email'
-                        value={isEditing ? tempProfile.email : profile.email}
-                        onChange={(e) =>
-                          setTempProfile((prev) => ({
-                            ...prev,
-                            email: e.target.value,
-                          }))
-                        }
-                        disabled={!isEditing}
-                      />
-                    </div>
-                  </div>
-                  <div className='grid grid-cols-2 gap-4'>
-                    <div className='space-y-2'>
                       <Label htmlFor='department'>Department</Label>
                       <Input
                         id='department'
-                        value={
-                          isEditing
-                            ? tempProfile.department
-                            : profile.department
-                        }
+                        value={formData.department}
                         onChange={(e) =>
-                          setTempProfile((prev) => ({
-                            ...prev,
-                            department: e.target.value,
-                          }))
+                          handleFieldChange('department', e.target.value)
                         }
-                        disabled={!isEditing}
+                        onDoubleClick={() => handleDoubleClick('department')}
+                        className={cn(
+                          'cursor-pointer',
+                          editingField === 'department' &&
+                            'ring-2 ring-primary'
+                        )}
+                        placeholder='Double-click to edit'
                       />
                     </div>
                     <div className='space-y-2'>
                       <Label htmlFor='region'>Region</Label>
                       <Input
                         id='region'
-                        value={isEditing ? tempProfile.region : profile.region}
+                        value={formData.region}
                         onChange={(e) =>
-                          setTempProfile((prev) => ({
-                            ...prev,
-                            region: e.target.value,
-                          }))
+                          handleFieldChange('region', e.target.value)
                         }
-                        disabled={!isEditing}
+                        onDoubleClick={() => handleDoubleClick('region')}
+                        className={cn(
+                          'cursor-pointer',
+                          editingField === 'region' && 'ring-2 ring-primary'
+                        )}
+                        placeholder='Double-click to edit'
                       />
                     </div>
                   </div>
@@ -217,8 +317,7 @@ export default function ProfilePage() {
                     Role & Responsibilities
                   </CardTitle>
                   <CardDescription>
-                    Help the AI understand your role and responsibilities for
-                    better contextual responses
+                    Double-click to edit your role and responsibilities
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-4'>
@@ -226,14 +325,16 @@ export default function ProfilePage() {
                     <Label htmlFor='role'>Job Title</Label>
                     <Input
                       id='role'
-                      value={isEditing ? tempProfile.role : profile.role}
+                      value={formData.role}
                       onChange={(e) =>
-                        setTempProfile((prev) => ({
-                          ...prev,
-                          role: e.target.value,
-                        }))
+                        handleFieldChange('role', e.target.value)
                       }
-                      disabled={!isEditing}
+                      onDoubleClick={() => handleDoubleClick('role')}
+                      className={cn(
+                        'cursor-pointer',
+                        editingField === 'role' && 'ring-2 ring-primary'
+                      )}
+                      placeholder='Double-click to edit'
                     />
                   </div>
                   <div className='space-y-2'>
@@ -241,19 +342,19 @@ export default function ProfilePage() {
                     <Textarea
                       id='roleDescription'
                       rows={6}
-                      placeholder='Describe your role, responsibilities, and areas of focus...'
-                      value={
-                        isEditing
-                          ? tempProfile.roleDescription
-                          : profile.roleDescription
-                      }
+                      placeholder='Double-click to edit...'
+                      value={formData.roleDescription}
                       onChange={(e) =>
-                        setTempProfile((prev) => ({
-                          ...prev,
-                          roleDescription: e.target.value,
-                        }))
+                        handleFieldChange('roleDescription', e.target.value)
                       }
-                      disabled={!isEditing}
+                      onDoubleClick={() =>
+                        handleDoubleClick('roleDescription')
+                      }
+                      className={cn(
+                        'cursor-pointer',
+                        editingField === 'roleDescription' &&
+                          'ring-2 ring-primary'
+                      )}
                     />
                     <p className='text-sm text-muted-foreground'>
                       This helps the AI provide more relevant and contextual
@@ -279,19 +380,11 @@ export default function ProfilePage() {
                   <div className='space-y-3'>
                     <Label htmlFor='responseStyle'>Response Style</Label>
                     <Select
-                      value={
-                        isEditing
-                          ? tempProfile.aiResponseStyleId
-                          : profile.aiResponseStyleId
-                      }
-                      onValueChange={(value) =>
-                        isEditing &&
-                        setTempProfile((prev) => ({
-                          ...prev,
-                          aiResponseStyleId: value,
-                        }))
-                      }
-                      disabled={!isEditing}
+                      value={formData.aiResponseStyleId}
+                      onValueChange={(value) => {
+                        handleFieldChange('aiResponseStyleId', value);
+                        setHasChanges(true);
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder='Select a response style' />
@@ -304,14 +397,9 @@ export default function ProfilePage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    {/* Show description for selected style */}
                     {(() => {
                       const selectedStyle = responseStyles.find(
-                        (style) =>
-                          style.id ===
-                          (isEditing
-                            ? tempProfile.aiResponseStyleId
-                            : profile.aiResponseStyleId),
+                        (style) => style.id === formData.aiResponseStyleId
                       );
                       return selectedStyle ? (
                         <p className='text-sm text-muted-foreground'>
@@ -322,9 +410,7 @@ export default function ProfilePage() {
                   </div>
 
                   {/* Custom Response Style - only show if Advanced is selected */}
-                  {(isEditing
-                    ? tempProfile.aiResponseStyleId
-                    : profile.aiResponseStyleId) === 'advanced' && (
+                  {formData.aiResponseStyleId === 'advanced' && (
                     <div className='space-y-2'>
                       <Label htmlFor='customResponseStyle'>
                         Custom Response Style
@@ -332,19 +418,22 @@ export default function ProfilePage() {
                       <Textarea
                         id='customResponseStyle'
                         rows={4}
-                        placeholder='Describe your preferred response style in detail...'
-                        value={
-                          isEditing
-                            ? tempProfile.customResponseStyle
-                            : profile.customResponseStyle
-                        }
+                        placeholder='Double-click to edit...'
+                        value={formData.customResponseStyle}
                         onChange={(e) =>
-                          setTempProfile((prev) => ({
-                            ...prev,
-                            customResponseStyle: e.target.value,
-                          }))
+                          handleFieldChange(
+                            'customResponseStyle',
+                            e.target.value
+                          )
                         }
-                        disabled={!isEditing}
+                        onDoubleClick={() =>
+                          handleDoubleClick('customResponseStyle')
+                        }
+                        className={cn(
+                          'cursor-pointer',
+                          editingField === 'customResponseStyle' &&
+                            'ring-2 ring-primary'
+                        )}
                       />
                       <p className='text-sm text-muted-foreground'>
                         Define exactly how you want the AI to respond to your
@@ -352,12 +441,72 @@ export default function ProfilePage() {
                       </p>
                     </div>
                   )}
+
+                  <div className='space-y-2'>
+                    <Label htmlFor='customInstructions'>
+                      Custom Instructions
+                    </Label>
+                    <Textarea
+                      id='customInstructions'
+                      rows={6}
+                      placeholder='Double-click to edit...'
+                      value={formData.customInstructions}
+                      onChange={(e) =>
+                        handleFieldChange('customInstructions', e.target.value)
+                      }
+                      onDoubleClick={() =>
+                        handleDoubleClick('customInstructions')
+                      }
+                      className={cn(
+                        'cursor-pointer',
+                        editingField === 'customInstructions' &&
+                          'ring-2 ring-primary'
+                      )}
+                    />
+                    <p className='text-sm text-muted-foreground'>
+                      Provide additional context or preferences for how the AI
+                      should assist you.
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
           </Tabs>
         </div>
       </div>
-    </>
+
+      {/* Helper text at bottom */}
+      <div className='absolute bottom-0 left-0 right-0 border-t bg-background'>
+        <div className='flex items-center justify-between p-3 max-w-4xl mx-auto'>
+          <p className='text-xs text-muted-foreground'>
+            {hasChanges
+              ? 'You have unsaved changes'
+              : 'Double-click on any field to edit'}
+          </p>
+          {hasChanges && (
+            <div className='flex items-center gap-2'>
+              <Button variant='outline' size='sm' onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button
+                size='sm'
+                onClick={handleSave}
+                disabled={updateProfile.isPending}
+                className='min-w-[80px]'
+              >
+                {updateProfile.isPending ? (
+                  <>
+                    <Loader2 className='h-3 w-3 animate-spin mr-1' />
+                    Saving...
+                  </>
+                ) : (
+                  'Save'
+                )}
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

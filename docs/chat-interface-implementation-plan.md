@@ -3,14 +3,17 @@
 ## Acceptance Criteria
 
 ### Must Have (Required for completion)
-- [ ] Sidebar with collapsible functionality using existing shadcn/ui sidebar components
-- [ ] Conversation history grouped by date (Today, Yesterday, Last 7 days, This month, Older)
-- [ ] Starred section above conversations showing starred chats and projects
-- [ ] Top navigation with three buttons: New Chat, Chats, Projects
-- [ ] Main chat area displaying selected conversation using existing chat components
-- [ ] Responsive design that works on mobile and desktop
-- [ ] Uses only existing shadcn/ui color system (no custom colors)
-- [ ] UI matches provided Claude-like screenshot design
+- [x] Sidebar with collapsible functionality using existing shadcn/ui sidebar components
+- [x] Conversation history grouped by date (Today, Yesterday, Last 7 days, This month, Older)
+- [x] Starred section above conversations showing starred chats and projects
+- [x] Top navigation with three buttons: New Chat, Chats, Projects
+- [x] Main chat area displaying selected conversation using existing chat components
+- [x] Responsive design that works on mobile and desktop
+- [x] Uses only existing shadcn/ui color system (no custom colors)
+- [x] UI matches provided Claude-like screenshot design
+- [ ] **NEW**: Zustand store for chat state management
+- [ ] **NEW**: Proper routing with /chat/[id] structure
+- [ ] **NEW**: Navigation integration with Next.js router
 
 ### Should Have (Nice to have)
 - [ ] Smooth animations for sidebar collapse/expand
@@ -59,6 +62,13 @@ Create a chat interface similar to Claude's UI with a collapsible sidebar contai
 
 ## Implementation Details
 
+### NEW: Routing Structure
+- **Main chat interface**: `/chat` - Shows sidebar with conversation list
+- **Individual conversations**: `/chat/[id]` - Shows specific conversation with ID in URL
+- **Navigation**: Clicking conversations in sidebar navigates to `/chat/[id]`
+- **State management**: Zustand store manages current chat ID and conversation state
+- **Layout**: Shared layout between `/chat` and `/chat/[id]` routes
+
 ### Date Grouping Logic
 - **Today**: Conversations from today
 - **Yesterday**: Conversations from yesterday
@@ -95,18 +105,31 @@ Create a chat interface similar to Claude's UI with a collapsible sidebar contai
 ```
 lib/
   date-utils.ts ✅
-  mock-data.ts
+  mock-data.ts ✅
+
+stores/
+  chat-store.ts (NEW - Zustand store)
 
 components/chat/
-  chat-layout.tsx
-  conversation-sidebar.tsx
-  conversation-item.tsx
-  conversation-group.tsx
-  starred-section.tsx
-  sidebar-navigation.tsx
+  chat-layout.tsx ✅ (needs routing updates)
+  conversation-sidebar.tsx ✅ (needs router integration)
+  conversation-item.tsx ✅
+  conversation-group.tsx ✅
+  starred-section.tsx ✅
+  sidebar-navigation.tsx ✅
 
 app/
-  page.tsx (updated)
+  page.tsx ✅ (landing page)
+  chat/
+    layout.tsx (NEW - shared layout)
+    page.tsx (NEW - main chat interface)
+    [id]/
+      page.tsx (NEW - individual chat)
+  prompts/
+    layout.tsx (NEW)
+    page.tsx (NEW)
+    [id]/
+      page.tsx (NEW)
 ```
 
 ## Dependencies
