@@ -44,8 +44,8 @@ next-env.d.ts
 # Claude
 !.claude/settings.local.json
 .claude/agents/*
+CLAUDE.md
 
 # roo
 .roo
 .roomodes
-CLAUDE.md
