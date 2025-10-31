@@ -47,3 +47,5 @@ next-env.d.ts
 
 # roo
 .roo
+.roomodes
+CLAUDE.md
