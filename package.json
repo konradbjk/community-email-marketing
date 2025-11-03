@@ -1,11 +1,13 @@
 {
-  "name": "community-email-marketing",
+  "name": "omnia-platform-ui",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start"
+    "start": "next start",
+    "seed": "tsx database/scripts/seed.ts",
+    "seed:dev": "tsx database/scripts/seed.ts --dev"
   },
   "dependencies": {
     "@ai-sdk/azure": "^2.0.30",
