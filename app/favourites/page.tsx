@@ -1,22 +1,33 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { SidebarTrigger } from "@/components/ui/sidebar"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Star, MessageSquare, Folder, ArrowLeft, Search } from "lucide-react"
-import { formatDistanceToNow } from "date-fns"
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { SidebarTrigger } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Star, MessageSquare, Folder, ArrowLeft, Search } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+
+const toDate = (value: any): Date | null => {
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? null : d;
+};
 
 export default function FavouritesPage() {
-  const router = useRouter()
-  const [searchQuery, setSearchQuery] = useState("")
-  const [starredConversations, setStarredConversations] = useState<any[]>([])
-  const [starredProjects, setStarredProjects] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [starredConversations, setStarredConversations] = useState<any[]>([]);
+  const [starredProjects, setStarredProjects] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch starred items from API
   useEffect(() => {
@@ -24,159 +35,205 @@ export default function FavouritesPage() {
       try {
         const [conversationsRes, projectsRes] = await Promise.all([
           fetch('/api/conversations?is_starred=true'),
-          fetch('/api/projects?is_starred=true')
-        ])
+          fetch('/api/projects?is_starred=true'),
+        ]);
 
         if (conversationsRes.ok) {
-          const convData = await conversationsRes.json()
-          setStarredConversations(convData)
+          const convData = await conversationsRes.json();
+          const list = Array.isArray(convData)
+            ? convData
+            : convData?.conversations ?? [];
+          const normalized = list.map((c: any) => ({
+            ...c,
+            timestamp:
+              toDate(c.timestamp) ??
+              toDate(c.updatedAt) ??
+              toDate(c.createdAt) ??
+              new Date(),
+          }));
+          setStarredConversations(normalized);
         }
 
         if (projectsRes.ok) {
-          const projData = await projectsRes.json()
-          setStarredProjects(projData)
+          const projData = await projectsRes.json();
+          const plist = Array.isArray(projData)
+            ? projData
+            : projData?.projects ?? [];
+          const normalizedP = plist.map((p: any) => ({
+            ...p,
+            lastActivity:
+              toDate(p.lastActivity) ??
+              toDate(p.updatedAt) ??
+              toDate(p.createdAt) ??
+              new Date(),
+          }));
+          setStarredProjects(normalizedP);
         }
       } catch (error) {
-        console.error('Failed to fetch starred items:', error)
+        console.error('Failed to fetch starred items:', error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
-    fetchStarredItems()
-  }, [])
+    };
+    fetchStarredItems();
+  }, []);
 
-  const filteredConversations = starredConversations.filter(conversation =>
-    conversation.title.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredConversations = starredConversations.filter((conversation) =>
+    conversation.title.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
-  const filteredProjects = starredProjects.filter(project =>
-    project.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.description.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredProjects = starredProjects.filter(
+    (project) =>
+      project.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.description.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   const handleConversationClick = (conversationId: string) => {
-    router.push(`/chat/${conversationId}`)
-  }
+    router.push(`/chat/${conversationId}`);
+  };
 
   const handleProjectClick = (projectId: string) => {
-    router.push(`/projects/${projectId}`)
-  }
+    router.push(`/projects/${projectId}`);
+  };
 
   const ConversationCard = ({ conversation }: { conversation: any }) => (
-    <Card key={conversation.id} className="cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => handleConversationClick(conversation.id)}>
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1 flex-1">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-muted-foreground" />
-              <CardTitle className="text-base">{conversation.title}</CardTitle>
-              <Star className="h-4 w-4 fill-current text-yellow-500" />
+    <Card
+      key={conversation.id}
+      className='cursor-pointer hover:shadow-md transition-shadow'
+      onClick={() => handleConversationClick(conversation.id)}
+    >
+      <CardHeader className='pb-3'>
+        <div className='flex items-start justify-between'>
+          <div className='space-y-1 flex-1'>
+            <div className='flex items-center gap-2'>
+              <MessageSquare className='h-4 w-4 text-muted-foreground' />
+              <CardTitle className='text-base'>{conversation.title}</CardTitle>
+              <Star className='h-4 w-4 fill-current text-yellow-500' />
             </div>
-            <CardDescription className="line-clamp-2">
+            <CardDescription className='line-clamp-2'>
               {conversation.lastMessage}
             </CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              <MessageSquare className="h-3 w-3" />
+      <CardContent className='pt-0'>
+        <div className='flex items-center justify-between text-sm text-muted-foreground'>
+          <div className='flex items-center gap-4'>
+            <div className='flex items-center gap-1'>
+              <MessageSquare className='h-3 w-3' />
               <span>{conversation.messageCount} messages</span>
             </div>
           </div>
-          <span>{formatDistanceToNow(conversation.timestamp, { addSuffix: true })}</span>
+          <span>
+            {conversation.timestamp
+              ? formatDistanceToNow(conversation.timestamp, { addSuffix: true })
+              : '—'}
+          </span>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 
   const ProjectCard = ({ project }: { project: any }) => (
-    <Card key={project.id} className="cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => handleProjectClick(project.id)}>
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1 flex-1">
-            <div className="flex items-center gap-2">
-              <Folder className="h-4 w-4 text-primary" />
-              <CardTitle className="text-base">{project.displayName}</CardTitle>
-              <Star className="h-4 w-4 fill-current text-yellow-500" />
+    <Card
+      key={project.id}
+      className='cursor-pointer hover:shadow-md transition-shadow'
+      onClick={() => handleProjectClick(project.id)}
+    >
+      <CardHeader className='pb-3'>
+        <div className='flex items-start justify-between'>
+          <div className='space-y-1 flex-1'>
+            <div className='flex items-center gap-2'>
+              <Folder className='h-4 w-4 text-primary' />
+              <CardTitle className='text-base'>{project.displayName}</CardTitle>
+              <Star className='h-4 w-4 fill-current text-yellow-500' />
             </div>
-            <CardDescription className="line-clamp-2">
+            <CardDescription className='line-clamp-2'>
               {project.description}
             </CardDescription>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-1">
-              <MessageSquare className="h-3 w-3" />
+      <CardContent className='pt-0'>
+        <div className='flex items-center justify-between text-sm text-muted-foreground'>
+          <div className='flex items-center gap-4'>
+            <div className='flex items-center gap-1'>
+              <MessageSquare className='h-3 w-3' />
               <span>{project.conversationCount} conversations</span>
             </div>
           </div>
-          <span>{formatDistanceToNow(project.lastActivity, { addSuffix: true })}</span>
+          <span>
+            {project.lastActivity
+              ? formatDistanceToNow(project.lastActivity, { addSuffix: true })
+              : '—'}
+          </span>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 
   return (
     <>
       {/* Header */}
-      <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-        <SidebarTrigger className="-ml-1" />
+      <header className='flex h-16 shrink-0 items-center gap-2 border-b px-4'>
+        <SidebarTrigger className='-ml-1' />
         <Button
-          variant="ghost"
+          variant='ghost'
           onClick={() => router.back()}
-          className="gap-2 text-muted-foreground hover:text-foreground"
+          className='gap-2 text-muted-foreground hover:text-foreground'
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className='h-4 w-4' />
           Back
         </Button>
-        <div className="flex items-center gap-2">
-          <Star className="h-5 w-5 text-yellow-500 fill-current" />
-          <h1 className="text-lg font-semibold">Favourites</h1>
+        <div className='flex items-center gap-2'>
+          <Star className='h-5 w-5 text-yellow-500 fill-current' />
+          <h1 className='text-lg font-semibold'>Favourites</h1>
         </div>
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-auto p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <h2 className="text-2xl font-bold">Your Starred Items</h2>
-              <p className="text-muted-foreground">
+      <div className='flex-1 overflow-auto p-6'>
+        <div className='max-w-7xl mx-auto space-y-6'>
+          <div className='space-y-4'>
+            <div className='space-y-2'>
+              <h2 className='text-2xl font-bold'>Your Starred Items</h2>
+              <p className='text-muted-foreground'>
                 All your starred conversations and projects in one place
               </p>
             </div>
 
             {/* Search */}
-            <div className="relative max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <div className='relative max-w-md'>
+              <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground' />
               <Input
-                placeholder="Search favourites..."
+                placeholder='Search favourites...'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className='pl-10'
               />
             </div>
           </div>
 
-          <Tabs defaultValue="all" className="space-y-6">
+          <Tabs defaultValue='all' className='space-y-6'>
             <TabsList>
-              <TabsTrigger value="all">All ({starredConversations.length + starredProjects.length})</TabsTrigger>
-              <TabsTrigger value="conversations">Conversations ({starredConversations.length})</TabsTrigger>
-              <TabsTrigger value="projects">Projects ({starredProjects.length})</TabsTrigger>
+              <TabsTrigger value='all'>
+                All ({starredConversations.length + starredProjects.length})
+              </TabsTrigger>
+              <TabsTrigger value='conversations'>
+                Conversations ({starredConversations.length})
+              </TabsTrigger>
+              <TabsTrigger value='projects'>
+                Projects ({starredProjects.length})
+              </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="all" className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <TabsContent value='all' className='space-y-4'>
+              <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
                 {filteredConversations.map((conversation) => (
-                  <ConversationCard key={conversation.id} conversation={conversation} />
+                  <ConversationCard
+                    key={conversation.id}
+                    conversation={conversation}
+                  />
                 ))}
                 {filteredProjects.map((project) => (
                   <ProjectCard key={project.id} project={project} />
@@ -184,34 +241,41 @@ export default function FavouritesPage() {
               </div>
             </TabsContent>
 
-            <TabsContent value="conversations" className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <TabsContent value='conversations' className='space-y-4'>
+              <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
                 {filteredConversations.map((conversation) => (
-                  <ConversationCard key={conversation.id} conversation={conversation} />
+                  <ConversationCard
+                    key={conversation.id}
+                    conversation={conversation}
+                  />
                 ))}
               </div>
               {filteredConversations.length === 0 && (
-                <div className="text-center py-12">
-                  <MessageSquare className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No starred conversations found</h3>
-                  <p className="text-muted-foreground">
+                <div className='text-center py-12'>
+                  <MessageSquare className='h-16 w-16 text-muted-foreground mx-auto mb-4' />
+                  <h3 className='text-lg font-semibold mb-2'>
+                    No starred conversations found
+                  </h3>
+                  <p className='text-muted-foreground'>
                     Star conversations to see them here
                   </p>
                 </div>
               )}
             </TabsContent>
 
-            <TabsContent value="projects" className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <TabsContent value='projects' className='space-y-4'>
+              <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
                 {filteredProjects.map((project) => (
                   <ProjectCard key={project.id} project={project} />
                 ))}
               </div>
               {filteredProjects.length === 0 && (
-                <div className="text-center py-12">
-                  <Folder className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No starred projects found</h3>
-                  <p className="text-muted-foreground">
+                <div className='text-center py-12'>
+                  <Folder className='h-16 w-16 text-muted-foreground mx-auto mb-4' />
+                  <h3 className='text-lg font-semibold mb-2'>
+                    No starred projects found
+                  </h3>
+                  <p className='text-muted-foreground'>
                     Star projects to see them here
                   </p>
                 </div>
@@ -219,20 +283,22 @@ export default function FavouritesPage() {
             </TabsContent>
           </Tabs>
 
-          {(filteredConversations.length === 0 && filteredProjects.length === 0 && searchQuery) && (
-            <div className="text-center py-12">
-              <Search className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No results found</h3>
-              <p className="text-muted-foreground mb-4">
-                Try adjusting your search terms
-              </p>
-              <Button onClick={() => setSearchQuery("")} variant="outline">
-                Clear Search
-              </Button>
-            </div>
-          )}
+          {filteredConversations.length === 0 &&
+            filteredProjects.length === 0 &&
+            searchQuery && (
+              <div className='text-center py-12'>
+                <Search className='h-16 w-16 text-muted-foreground mx-auto mb-4' />
+                <h3 className='text-lg font-semibold mb-2'>No results found</h3>
+                <p className='text-muted-foreground mb-4'>
+                  Try adjusting your search terms
+                </p>
+                <Button onClick={() => setSearchQuery('')} variant='outline'>
+                  Clear Search
+                </Button>
+              </div>
+            )}
         </div>
       </div>
     </>
-  )
+  );
 }
