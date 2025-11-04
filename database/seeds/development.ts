@@ -41,6 +41,7 @@ export async function seedDevelopmentData(dataSource: DataSource): Promise<void>
     surname: 'Johnson',
     email: 'alex.johnson@merck.com',
     image: 'https://avatar.iran.liara.run/public/43',
+    last_login: new Date(),
   });
   await userRepository.save(demoUser);
   console.log('  ✓ Created demo user: Alex Johnson');
