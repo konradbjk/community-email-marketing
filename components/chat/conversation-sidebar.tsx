@@ -22,7 +22,7 @@ import {
   Archive,
 } from 'lucide-react';
 import { StarredSection } from './starred-section';
-import { ConversationGroup } from './conversation-group';
+import { ConversationsSection } from './conversations-section';
 import {
   useConversations,
   useCreateConversation,
@@ -32,7 +32,10 @@ import {
   useRenameConversation,
 } from '@/hooks/use-conversations';
 import { useProjects } from '@/hooks/use-projects';
-import { useActiveConversationId, useSetActiveConversation } from '@/hooks/use-chat';
+import {
+  useActiveConversationId,
+  useSetActiveConversation,
+} from '@/hooks/use-chat';
 import { UserBar } from '@/components/layout/user-bar';
 
 interface ConversationSidebarProps {
@@ -55,8 +58,16 @@ export function ConversationSidebar({
   const setActiveConversation = useSetActiveConversation();
 
   // Get server data from TanStack Query
-  const { data: conversations = [] } = useConversations({ includeArchived: true });
-  const { data: starredProjects = [] } = useProjects({ isStarred: true });
+  const {
+    data: conversations = [],
+    isLoading: isLoadingConversations,
+    isError: isErrorConversations,
+  } = useConversations({ includeArchived: true });
+  const {
+    data: starredProjects = [],
+    isLoading: isLoadingStarredProjects,
+    isError: isErrorStarredProjects,
+  } = useProjects({ isStarred: true });
 
   // Mutations
   const createConversationMutation = useCreateConversation();
@@ -70,7 +81,10 @@ export function ConversationSidebar({
 
   // Filter conversations
   const activeConversations = conversations.filter((conv) => !conv.isArchived);
-  const starredConversations = conversations.filter((conv) => conv.isStarred && !conv.isArchived);
+  const starredConversations = conversations.filter(
+    (conv) => conv.isStarred && !conv.isArchived,
+  );
+  const favouritesCount = starredConversations.length + starredProjects.length;
 
   // Group conversations by date
   const conversationGroups = {
@@ -143,7 +157,7 @@ export function ConversationSidebar({
             setActiveConversation(data.id);
             router.push(`/chat/${data.id}`);
           },
-        }
+        },
       );
     }
   };
@@ -267,119 +281,47 @@ export function ConversationSidebar({
 
       {/* Scrollable Content */}
       <SidebarContent>
-        {/* Starred Section */}
-        {(starredConversations.length > 0 || starredProjects.length > 0) && (
+        <div className='flex h-full flex-col overflow-hidden'>
+          {/* Favourites section - header always visible with count */}
           <SidebarGroup>
-            <SidebarGroupLabel>Starred</SidebarGroupLabel>
+            <SidebarGroupLabel>{`Favourites (${favouritesCount})`}</SidebarGroupLabel>
             <SidebarGroupContent>
               <StarredSection
-                starredConversations={transformedConversations(starredConversations)}
+                starredConversations={transformedConversations(
+                  starredConversations,
+                )}
                 starredProjects={starredProjects}
                 activeConversationId={currentActiveId || undefined}
                 onConversationClick={handleConversationSelect}
                 onProjectClick={handleProjectSelect}
                 onToggleConversationStar={handleToggleStar}
                 onToggleProjectStar={handleToggleProjectStar}
+                isLoading={isLoadingConversations || isLoadingStarredProjects}
+                isError={isErrorConversations || isErrorStarredProjects}
               />
             </SidebarGroupContent>
           </SidebarGroup>
-        )}
 
-        {/* Conversations grouped by date */}
-        {conversationGroups.today.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Today</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <ConversationGroup
-                group='today'
-                conversations={transformedConversations(conversationGroups.today)}
-                activeConversationId={currentActiveId || undefined}
-                onConversationClick={handleConversationSelect}
-                onToggleStar={handleToggleStar}
-                onArchive={handleArchive}
-                onDelete={handleDelete}
-                onRename={handleRename}
-              />
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {conversationGroups.yesterday.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Yesterday</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <ConversationGroup
-                group='yesterday'
-                conversations={transformedConversations(conversationGroups.yesterday)}
-                activeConversationId={currentActiveId || undefined}
-                onConversationClick={handleConversationSelect}
-                onToggleStar={handleToggleStar}
-                onArchive={handleArchive}
-                onDelete={handleDelete}
-                onRename={handleRename}
-              />
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {conversationGroups.last7days.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Last 7 days</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <ConversationGroup
-                group='last7days'
-                conversations={transformedConversations(conversationGroups.last7days)}
-                activeConversationId={currentActiveId || undefined}
-                onConversationClick={handleConversationSelect}
-                onToggleStar={handleToggleStar}
-                onArchive={handleArchive}
-                onDelete={handleDelete}
-                onRename={handleRename}
-              />
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {conversationGroups.thismonth.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel>This month</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <ConversationGroup
-                group='thismonth'
-                conversations={transformedConversations(conversationGroups.thismonth)}
-                activeConversationId={currentActiveId || undefined}
-                onConversationClick={handleConversationSelect}
-                onToggleStar={handleToggleStar}
-                onArchive={handleArchive}
-                onDelete={handleDelete}
-                onRename={handleRename}
-              />
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {conversationGroups.older.length > 0 && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Older</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <ConversationGroup
-                group='older'
-                conversations={transformedConversations(conversationGroups.older)}
-                activeConversationId={currentActiveId || undefined}
-                onConversationClick={handleConversationSelect}
-                onToggleStar={handleToggleStar}
-                onArchive={handleArchive}
-                onDelete={handleDelete}
-                onRename={handleRename}
-              />
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+          {/* Conversations section - encapsulated */}
+          <div className='flex-1 overflow-hidden'>
+            <ConversationsSection
+              conversations={conversations}
+              isLoading={isLoadingConversations}
+              isError={isErrorConversations}
+              activeConversationId={currentActiveId || undefined}
+              onConversationClick={handleConversationSelect}
+              onToggleStar={handleToggleStar}
+              onArchive={handleArchive}
+              onDelete={handleDelete}
+              onRename={handleRename}
+            />
+          </div>
+        </div>
       </SidebarContent>
 
       {/* Sticky Footer */}
       <SidebarFooter className='border-t p-2'>
-        <UserBar />
+        <UserBar className='w-full' />
       </SidebarFooter>
     </Sidebar>
   );
