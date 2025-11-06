@@ -28,7 +28,7 @@ export function UserBar({ className }: UserBarProps) {
 
   if (status === 'loading') {
     return (
-      <div className={cn('flex items-center gap-2 min-w-[240px]', className)}>
+      <div className={cn('flex w-full items-center gap-2 min-w-[240px]', className)}>
         <Loader2 className='h-4 w-4 animate-spin text-muted-foreground' />
       </div>
     );
@@ -51,12 +51,12 @@ export function UserBar({ className }: UserBarProps) {
   };
 
   return (
-    <div className={cn('flex items-center gap-2 min-w-[240px]', className)}>
+    <div className={cn('flex w-full items-center gap-2 min-w-[240px]', className)}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
             variant='ghost'
-            className='flex items-center gap-3 h-10 py-2 px-3 hover:bg-accent rounded-md'
+            className='flex w-full items-center gap-3 h-10 py-2 px-3 hover:bg-accent rounded-md justify-start'
           >
             <Avatar className='h-8 w-8'>
               {image && <AvatarImage src={image} alt={fullName} />}
