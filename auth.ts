@@ -14,24 +14,6 @@ const testUsers = [
     password: 'password',
     image: 'https://avatar.iran.liara.run/public/43',
   },
-  {
-    merck_id: 'm283456',
-    name: 'Sarah',
-    surname: 'Chen',
-    email: 'sarah.chen@merck.com',
-    username: 'sarah.chen',
-    password: 'password',
-    image: 'https://avatar.iran.liara.run/public/77',
-  },
-  {
-    merck_id: 'm291234',
-    name: 'Michael',
-    surname: 'Rodriguez',
-    email: 'michael.rodriguez@merck.com',
-    username: 'michael.rodriguez',
-    password: 'password',
-    image: 'https://avatar.iran.liara.run/public/32',
-  },
 ];
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
