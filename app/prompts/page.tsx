@@ -336,12 +336,6 @@ export default function PromptsPage() {
                   and analysis
                 </p>
               </div>
-              <div className='ml-auto'>
-                <Button className='gap-2'>
-                  <Plus className='h-4 w-4' />
-                  Create Prompt
-                </Button>
-              </div>
             </div>
 
             {/* Search and Filters */}
