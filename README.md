@@ -146,6 +146,36 @@ Required variables:
 
 See `lib/env-validation.ts` for complete environment configuration.
 
+### Keycloak Profile Payload
+
+When authenticating via Keycloak (Merck Identity Hub), Auth.js receives a profile payload similar to:
+
+```json
+{
+  "exp": 1763120443,
+  "iat": 1763120143,
+  "auth_time": 1763041341,
+  "jti": "e3636d33-7d71-489d-bdd1-6c5a34aab484",
+  "iss": "https://logon-preprod.merckgroup.com/realms/identityhub",
+  "aud": "hc-omnia-platform-dev",
+  "sub": "x280977@one.merckgroup.com",
+  "typ": "ID",
+  "azp": "hc-omnia-platform-dev",
+  "sid": "6b1bdc89-a16e-4bdd-a908-1d0cad593634",
+  "at_hash": "uuZEMxCiu2vgHk-_mhRX4QN9RdNoYg0kvhdZYwpKxm8",
+  "email_verified": true,
+  "name": "Konrad Bujak",
+  "preferred_username": "x280977@one.merckgroup.com",
+  "given_name": "Konrad",
+  "family_name": "Bujak",
+  "email": "konrad.bujak@external.merckgroup.com"
+}
+```
+
+We derive the internal Merck ID (`merck_id`) by taking the portion of `preferred_username` before the `@` symbol (for the example above, `x280977`). This value drives user lookups and profile provisioning inside the application.
+
+`users` remains the immutable identity source (merck_id, name, surname, email, image, `last_login`), updated during the Auth.js `signIn` event. `user_profiles` holds editable preferences and is linked one-to-one via the UUID PK. Session cookies now expire after seven days; returning visitors reuse their JWT until that window lapses.
+
 ## Development Status
 
 This is a POC (Proof of Concept) version. Current features:
