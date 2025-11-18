@@ -1,14 +1,4 @@
-# GenAI Cracow Email Marketing Tool
-
-A modern email marketing platform built for the GenAI Cracow community. This application enables event organizers to manage subscribers, create campaigns, send emails via AWS SES, and track engagement analytics.
-
-## Features
-
-- **Subscriber Management**: Import/export CSV, tag management, duplicate detection
-- **Campaign Creation**: Multi-step campaign builder with React Email templates
-- **Email Delivery**: AWS SES integration with rate limiting and batch processing
-- **Analytics & Tracking**: Open/click tracking, engagement metrics, bounce handling
-- **Responsive Design**: Mobile-friendly admin interface with dark/light mode support
+# Claude-like chatbot UI
 
 ## Tech Stack
 
@@ -113,6 +103,27 @@ docs/                    # Documentation
 └── specification.md     # Product requirements
 ```
 
+## Chat Architecture Overview
+
+The current chat experience uses Next.js App Router pages and TanStack Query for data fetching and mutations.
+
+- Active routes and layout:
+  - New conversation flow: `app/chat/page.tsx`
+  - Conversation view: `app/chat/[id]/page.tsx`
+  - Route layout: `app/chat/layout.tsx`
+- Message data flow:
+  - Messages are fetched and mutated via TanStack Query hooks in `hooks/use-messages.ts`.
+  - Server endpoints orchestrate persistence and AI calls:
+    - `GET /api/conversations/[id]` (hydrate conversation + messages)
+    - `POST /api/conversations/[id]/messages` (send message + persist AI response)
+    - `PATCH /api/conversations/[id]/messages/[messageId]` (edit/regenerate)
+- Deprecated component (not used in the current App Router flow):
+  - `components/chat/chat-layout.tsx` — legacy shell; the active layout is `app/chat/layout.tsx`.
+
+For detailed behavior, see:
+- `docs/chat-interface.md` — current chat interface architecture and message lifecycle
+- `docs/state-management.md` — interaction between Zustand and TanStack Query for chat
+
 ## Database Setup
 
 The application uses PostgreSQL with TypeORM. Database initialization follows a clean separation:
@@ -187,4 +198,4 @@ This is a POC (Proof of Concept) version. Current features:
 
 ## Contributing
 
-See `CLAUDE.md` for development guidelines and coding conventions.
+See `CLAUDE.md` and `AGENTS.md` for development guidelines and coding conventions.
